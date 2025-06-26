@@ -1,0 +1,53 @@
+#ifndef  GFX_H_
+#define  GFX_H_
+
+#include  "tictac.h"
+#include  "ansi.h"
+
+//----------------------------------------------------------------------------- ---------------------------------------
+#define  C_INVALID  (DBLU)
+
+#define  C_LOSE     (BRED)
+#define  C_LOSE2    ( MAG)
+
+#define  C_WEAK     ( CYN)
+#define  C_FAIR     ( WHT)
+#define  C_STRONG   (BYEL)
+
+#define  C_WIN      (BGRN)
+#define  C_WIN2     ( GRN)
+
+#define  C_GAME     (BWHT)
+
+//----------------------------------------------------------------------------- ---------------------------------------
+typedef
+	enum mnuOpt {
+		MNU_NONE  = 0,
+		MNU_UNDO,
+		MNU_AGAIN,
+		MNU_ANAL,
+		MNU_REDO,
+		MNU_QUIT,
+	}
+mnuOpt_e;
+
+//----------------------------------------------------------------------------- ---------------------------------------
+mnuOpt_e  menuChk   (int y,  int x) ;
+void      menuShow  (int y,  int x) ;
+void      menuClear (void) ;
+
+void      oxoBig    (int y,  int x,  board_s* bp) ;
+
+void      oxo       (int id,  board_s* bp,  int x) ;
+
+void      seqShow   (int y,  int cnt) ;
+
+void      optShow   (board_s* bp) ;
+int       optChk    (int* in) ;
+
+void      modeShow  (int y,  int x) ;
+void      modeClear (void) ;
+int       modeChk   (void) ;
+
+#endif //GFX_H_
+
