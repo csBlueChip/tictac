@@ -41,6 +41,7 @@ void      oxoBig    (int y,  int x,  board_s* bp) ;
 void      oxo       (int id,  board_s* bp,  int x) ;
 
 void      seqShow   (int y,  int cnt) ;
+void      seqClear  (void) ;
 
 void      optShow   (board_s* bp) ;
 int       optChk    (int* in) ;

@@ -86,18 +86,6 @@ board_s;
 #define  BMAX      (986410)  // WHAT is the maths that generates this number?? // sum/product of factorials??
 
 //----------------------------------------------------------------------------- ---------------------------------------
-// This'll do for now...
-//
-#define  MOVE_MAX  36  // Declare a 'draw' after N moves
-
-typedef
-	struct  play {
-		int       c;
-		board_s*  bp;
-	}
-play_t;
-
-//----------------------------------------------------------------------------- ---------------------------------------
 //	 X | X | X
 //	---+---+---
 //	 X | X | X
@@ -120,6 +108,18 @@ typedef
 		int  laWin[2];
 	}
 pref_t;
+
+//----------------------------------------------------------------------------- ---------------------------------------
+// This'll do for now...
+//
+#define  MOVE_MAX  36  // Declare a 'draw' after N moves
+
+typedef
+	struct  play {
+		board_s*  bp;  // board
+		int       in;  // option played
+	}
+play_t;
 
 //----------------------------------------------------------------------------- ---------------------------------------
 // Global variables ...Everybody has access to the game-state

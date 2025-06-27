@@ -1,25 +1,3 @@
-/*
-Normal rules:
-	There are 986,410 sequences which end with all 9 squares filled  (incl. empty-board)
-	       or 549,946 if you stop placing pieces when someone "wins" (incl. empty-board)
-	 of which 340,858 sequences end in a draw
-	      and 209,088 end with someone winning
-	 of which 131,184 will be won by player-1
-	      and  77,904 will be won by player-2
-
-	There are 8 winning lines                {top, middle, bottom, left, centre, right, backslash, forward-slash}
-	 of which 4 pass through the epicente    {     middle,               centre,        backslash, forward-slash}
-	          3 pass through each corner eg. {top,                 left,                backslash,              }
-	      and 2 pass through each edge   eg. {top,                       centre,                                }
-
-	There are 6 ways to lay each winning line {123, 132, 213, 231, 312, 321}
-
-	p1, opens with centre : wins[p1] = 15,648 .. wins[p2] =  5,616
-	               corner : wins[p1] = 14,652 .. wins[p2] =  7,869
-	                 edge : wins[p1] = 14,232 .. wins[p2] = 10,176
-
-*/
-
 #include  <stdint.h>
 #include  <stdbool.h>
 #include  <stdio.h>
@@ -41,15 +19,10 @@ Normal rules:
 #define  NDEBUG
 #include  "debug.h"
 
-global_s  g;  // this is extern'ed
-
-//+============================================================================ =======================================
-void  cleanup (void)
-{
-	mouse(MRPT_NONE) ;
-	(void)termRestore(NULL);
-	goyx(g.yy+5,1);
-}
+//----------------------------------------------------------------------------- ---------------------------------------
+// global variables - extern'ed
+//
+global_s  g;
 
 //+============================================================================ =======================================
 int  tictac (void)
@@ -62,10 +35,10 @@ int  tictac (void)
 	// ie. if parity == 0, then when this board refers to a player as "player-1", it is referring to: "O"
 	//     if parity == 1,  "    "    "     "      "   "  "    "   "  "player-1", "  "      "     " : "X"
 	//
-	// The same is true for all looping games
+	// Similar is true for all looping games
 	g.par = 0;
 
-	// 'play' is the undo stack
+	// 'play' acts as the undo stack
 	g.play[(g.move = 0, g.last = 0)].bp = bp;
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -88,9 +61,10 @@ int  tictac (void)
 
 		// no preferred move
 		memset(g.pref, 0, sizeof(g.pref));
-		for (cidx = 0;  cidx < st;  g.pref[cidx++].ink = C_INVALID ) ;
-		for (        ;  cidx < nd;  g.pref[cidx++].ink = C_FAIR    ) ;
-		for (        ;  cidx < 9 ;  g.pref[cidx++].ink = C_INVALID ) ;
+		int  cidx = 0;
+		for (  ;  cidx < st;  g.pref[cidx++].ink = C_INVALID ) ;
+		for (  ;  cidx < nd;  g.pref[cidx++].ink = C_FAIR    ) ;
+		for (  ;  cidx < 9 ;  g.pref[cidx++].ink = C_INVALID ) ;
 		g.pref[cidx].ink = C_GAME;  // {9} is the game board  (unused, for now)
 
 		if (!bp->win)  analyse(bp, st, nd) ;  // Winners don't have children
@@ -101,7 +75,7 @@ int  tictac (void)
 
 		// when the current board contains `loop` pieces, we need to flip the parity
 		// the first time this will happen will be AFTER move #loop (eg. move #6) has been played
-		if (bp->cnt == g.loop)  g.par ^= 1 ;
+		g.par ^= (bp->cnt == g.loop);
 
 		// draw ALL children (even greyed out moves)
 		optShow(bp);
@@ -117,10 +91,11 @@ int  tictac (void)
 			const char* const  icon1 = (g.move & 1) ? plo[0] : plx[0] ;  // this player
 			const char* const  icon2 = (g.move & 1) ? plx[0] : plo[0] ;  // other player
 			goyx(g.yy+2,0);
+			ink(NORM);
 			if      (bp->win)                { MSGF("Player %s WINS!\e[K", icon2);                       over = 1; }
 			else if (bp->cnt == 9)           { MSGF("It's a draw!\e[K");                                 over = 1; }
 			else if (g.move +1 >= MOVE_MAX)  { MSGF("%d moves made - I declare a draw!\e[K", MOVE_MAX);  over = 1; }
-			else                             { MSGF("Move %d: %s >\e[K", g.move, icon1);                            }
+			else                             { MSGF("Move %d: %s >\e[K", g.move, icon1);                           }
 
 			//----------------------------------------------
 			// Get user input
@@ -143,17 +118,20 @@ int  tictac (void)
 
 				// OnClick event
 				if ((g.mev == MEV_BTN_L) && MOUSE_ISDOWN(in)) {
-					int  m;
-					if        (optChk(&in) >= 0) {            // translate option clicks
-						(void)NULL;
-
-					} else if ((m = modeChk())) {
+					// game mode {5..9}
+					int  m = modeChk();
+					if (m) {
 						in     = KEY_CTRL_R;
 						g.loop = m;
 						modeShow(13, 5);  //!
 
+					// option {0..8}
+					} else if (optChk(&in) >= 0) {
+						(void)NULL;
+
+					// menu options
 					} else {
-						switch (menuChk(g.my, g.mx)) {        // else translate menu clicks
+						switch (menuChk(g.my, g.mx)) {
 							case MNU_UNDO  :  in = KEY_LEFT;    break ;
 							case MNU_REDO  :  in = KEY_RIGHT;   break ;
 							case MNU_ANAL  :  in = KEY_CTRL_A;  break ;
@@ -174,22 +152,27 @@ int  tictac (void)
 			} else if (in == KEY_CTRL_A) {                      // ^A analysis show/hide
 				g.hide ^= 1;
 				optShow(bp);
-				oxoBig(7, 38, bp);  // Draw the main board
 				menuShow(16, 5);  //!
 
+				// we draw the master board BEFORE we flipped the parity!
+				g.par ^= (bp->cnt == g.loop);
+				oxoBig(7, 38, bp);  // Draw the main board
+				g.par ^= (bp->cnt == g.loop);
+
+				continue;
+
 			} else if (in == KEY_CTRL_C) {                      // ^C quit
-				MSGFYX(g.yy+3,0, "Quit\e[K\r\n");
+				ink(NORM);
+				MSGFYX(g.yy+3,0, "Quit\e[K");
 				return 0;
 
 			} else if (in == KEY_CTRL_R) {                      // ^R new game
-				// clear sequence display
-				MSGFYX(g.yy  ,1, "\e[K");
-				MSGFYX(g.yy+1,1, "\e[K");
-				return 1;
+				seqClear();
+				return 1;    // trigger reentry to tictac()
 
 			} else if (in == KEY_RIGHT) {                       // -> redo
 				if (g.last >= g.move) {
-					in = g.play[g.move-1].c;
+					in = g.play[g.move-1].in;
 					goto redo;  // oh no, a scary goto! Quick: Call the 'goto' police!
 				}
 
@@ -198,9 +181,9 @@ int  tictac (void)
 				// we want to end up on move-1, but the loop iterator does move++
 				g.move -= 2;
 
-				if (g.move+1 == g.loop)  g.par ^= 1 ;
+				g.par  ^= (g.move+1 == g.loop);
 
-				bp = g.play[g.move].bp;
+				bp      = g.play[g.move].bp;
 				seqShow(g.yy, g.move);
 
 				goto continue2;
@@ -217,11 +200,11 @@ int  tictac (void)
 		}
 
 		// make the move!
-		g.last             = g.move;
+		g.last              = g.move;        // update end of the redo-buffer
 redo:
-		g.play[g.move-1].c = in;
-		g.play[g.move].bp  = bp->chld[in];
-		bp                 = bp->chld[in];
+		g.play[g.move-1].in = in;            // mainboard option selected
+		g.play[g.move].bp   = bp->chld[in];  // this selection (about to become mainboard)
+		bp                  = bp->chld[in];  // board in play
 
 		// Show move sequence
 		seqShow(g.yy, g.move);
@@ -230,6 +213,14 @@ continue2:
 		MSGFYX(g.yy+3,0, "\e[K");  // clear status line
 	}//never exits
 
+}
+
+//+============================================================================ =======================================
+void  cleanup (void)
+{
+	mouse(MRPT_NONE) ;
+	(void)termRestore(NULL);
+	goyx(g.yy+5,1);
 }
 
 //++=========================================================================== =======================================
