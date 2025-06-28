@@ -106,9 +106,9 @@ void  oxoAnal (int id,  board_s* bp,  int x)
 		if (g.pref[id].ink == C_INVALID)  return ;  // nor boards flagged as invalid
 
 		// let's dig 6 moves ahead
-		for (int i = 1;  i <= 6;  i++) {
+		for (int i = 1;  i <= 6;  i++) {  //! 20
 
-			int yy = g.yOpt +9 +i +(i>=5) +(i>=6);  // 4, 5, 6 are have a second line of info
+			int yy = g.yOpt +9 +i +(i>=3) +(i>=4) +(i>=5) +(i>=6);  // 2, 3, 4, 5, 6 are have a second line of info
 			goyx(yy, x);
 
 			// Winners don't have children!
@@ -119,7 +119,7 @@ void  oxoAnal (int id,  board_s* bp,  int x)
 				else      ink(((g.move+i)&1) ? BRED : BCYN) ;  // BRT=my move, DIM=their move
 
 				printf("%d: %d/%d", i, w[0^(i&1)], w[1^(i&1)]);
-				if (i >= 4)  MSGFYX(yy+1, x, "==%d", w[0^(i&1)] - w[1^(i&1)]);
+				if (i >= 2)  MSGFYX(yy+1, x, "   %+d", w[0^(i&1)] - w[1^(i&1)]);
 			}
 		}
 	}

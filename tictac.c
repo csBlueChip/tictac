@@ -267,7 +267,7 @@ int main (int argc,  char* argv[])
 	memset(&g, 0, sizeof(g));
 
 	g.yOpt = 26;  // y coord for options
-	g.yy   = 46;  // coord for sequence (other stuff below it)
+	g.yy   = 48;  // coord for sequence (other stuff below it)
 
 	g.oxoY = 7;   // main board
 	g.oxoX = 38;  // ...

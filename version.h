@@ -8,7 +8,7 @@
 
 #define  VER_MAJ   0
 #define  VER_MIN   8
-#define  VER_SUB   0
+#define  VER_SUB   1
 
 #define  STR_(x)   #x
 #define  STR(x)    STR_(x)

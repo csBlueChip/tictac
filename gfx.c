@@ -32,7 +32,7 @@ void  oxo (int id,  board_s* bp,  int x)
 	goyx(g.yOpt+5,x  );  printf("   |   |   ");
 
 	// clear analysis results
-	for (int yy = g.yOpt +7;  yy <= g.yOpt +18;  yy++) {
+	for (int yy = g.yOpt +7;  yy <= g.yOpt +20;  yy++) {  //! 20
 		goyx(yy,x);
 		printf("           ");
 	}
@@ -437,7 +437,7 @@ void  shadow (board_s* bp,  int opt,  int pos)
 
 void box_ (int opt,  char* tl, char* tr, char* bl, char* br, char* h, char* v)
 {
-	int  hh = g.hide ? 5 : (g.loop ==9) ? 8 : 18 ;
+	int  hh = g.hide ? 5 : (g.loop == 9) ? 8 : 20 ;  //! 20
 
 	goyx(g.yOpt-1, (opt*wOpt)+1);
 	printf(tl);

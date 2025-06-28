@@ -15,7 +15,7 @@
 #define  C_STRONG   (BYEL)
 
 #define  C_WIN      (BGRN)
-#define  C_WIN2     ( GRN)
+#define  C_WIN2     (DGRN)
 
 #define  C_GAME     (BWHT)
 
