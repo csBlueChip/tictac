@@ -15,9 +15,10 @@ gfx.c - display functions
 	menu          - including mouse check
 	move options  - including mouse check
 	mode options  - including mouse check
-	play sequence
-	oxo big
-	oxo small
+	oxo big       - including mouse check
+
+	play sequence - display only
+	oxo small     - display only
 
 logic.c - logical operations
 	who     - who is in position X of board B

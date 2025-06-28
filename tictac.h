@@ -143,6 +143,8 @@ typedef
 		int      mev;             // mouse event
 		int      my, mx;          // mouse x,y
 
+		int      oxoY, oxoX;      // big board y, x
+
 		int      yOpt;            // Y coordinate of options
 
 		pref_t   pref[10];        // (up to) 9 possible moves + 1 for the game board

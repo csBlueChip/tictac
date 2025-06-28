@@ -1,6 +1,8 @@
 #ifndef  CONIO_H_
 #define  CONIO_H_
 
+#include  <stdbool.h>
+
 #ifndef BPT
 #	define  BPT  __asm__("int3");
 #endif

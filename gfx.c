@@ -6,7 +6,7 @@
 #include  "macro.h"
 #include  "gfx.h"
 #include  "logic.h"
-
+#include  "conio.h"
 
 //+============================================================================
 // g.prefs is an array of struct {0..8} are for each board option
@@ -129,9 +129,9 @@ static  const char* const  icon[2][4][5] = {
 static  const char* const empty[5] = 
 		{ N N N N N,  N N N N N,  N N N N N,  N N N N N,  N N N N N };  // empty
 
-static  int  iconClr[2][4] = {
-	{ BRED, RED, RED, DRED },  // O colours
-	{ BCYN, CYN, CYN, DCYN },  // X colours
+static  int  iconClr[2][5] = {
+	{ BRED, RED, RED, DRED, DGRY },  // O colours
+	{ BCYN, CYN, CYN, DCYN, DGRY },  // X colours
 };
 
 #	undef  U
@@ -145,13 +145,17 @@ static  int  iconClr[2][4] = {
 static
 void  _piece (int y,  int x,  board_s* bp,  int pos)
 {
-	int                 occ = occupier(bp, pos);    // original board occupier
+	int                 occ = (pos == -1) ? 0 : occupier(bp, pos%10) ;    // original board occupier
 	const char* const*  ico = empty;                // icon pointer
 
 	if (occ) {
 		occ = (occ ^ (g.par *3)) -1;    // adjust occupier against game parity (for looping games)
 
-		if (g.hide || (g.loop == 9)) {  // All look same
+		if (pos >= 10) {          // shadow bodge
+			ink(iconClr[occ][4]);
+			ico = icon[occ][1];
+
+		} else if (g.hide || (g.loop == 9)) {  // All look same
 			ink(iconClr[occ][0]);
 			ico = icon[occ][0];
 
@@ -174,21 +178,42 @@ void  _piece (int y,  int x,  board_s* bp,  int pos)
 }
 
 //+============================================================================
-void  oxoBig (int y,  int x,  board_s* bp)
+int  oxoChk (void)
 {
-	_grid(y,x);
+	if        (INRANGE(g.my, g.oxoY+ 0, g.oxoY+ 4)) {                   // top
+		if      (INRANGE(g.mx, g.oxoX+ 0, g.oxoX+ 8))  return POS_TL ;  //   left
+		else if (INRANGE(g.mx, g.oxoX+10, g.oxoX+18))  return POS_TC ;  //   centre
+		else if (INRANGE(g.mx, g.oxoX+20, g.oxoX+28))  return POS_TR ;  //   right
 
-	_piece(y+ 0, x+ 2, bp, POS_TL);
-	_piece(y+ 0, x+12, bp, POS_TC);
-	_piece(y+ 0, x+22, bp, POS_TR);
+	} else if (INRANGE(g.my, g.oxoY+ 6, g.oxoY+10)) {                   // middle
+		if      (INRANGE(g.mx, g.oxoX+ 0, g.oxoX+ 8))  return POS_ML ;  //   left
+		else if (INRANGE(g.mx, g.oxoX+10, g.oxoX+18))  return POS_MC ;  //   centre
+		else if (INRANGE(g.mx, g.oxoX+20, g.oxoX+28))  return POS_MR ;  //   right
 
-	_piece(y+ 6, x+ 2, bp, POS_ML);
-	_piece(y+ 6, x+12, bp, POS_MC);
-	_piece(y+ 6, x+22, bp, POS_MR);
+	} else if (INRANGE(g.my, g.oxoY+12, g.oxoY+16)) {                   // bottom
+		if      (INRANGE(g.mx, g.oxoX+ 0, g.oxoX+ 8))  return POS_BL ;  //   left
+		else if (INRANGE(g.mx, g.oxoX+10, g.oxoX+18))  return POS_BC ;  //   centre
+		else if (INRANGE(g.mx, g.oxoX+20, g.oxoX+28))  return POS_BR ;  //   right
+	}
+	return -1;
+}
 
-	_piece(y+12, x+ 2, bp, POS_BL);
-	_piece(y+12, x+12, bp, POS_BC);
-	_piece(y+12, x+22, bp, POS_BR);
+//+============================================================================
+void  oxoBig (board_s* bp)
+{
+	_grid(g.oxoY, g.oxoX);
+
+	_piece(g.oxoY+ 0, g.oxoX+ 2, bp, POS_TL);
+	_piece(g.oxoY+ 0, g.oxoX+12, bp, POS_TC);
+	_piece(g.oxoY+ 0, g.oxoX+22, bp, POS_TR);
+
+	_piece(g.oxoY+ 6, g.oxoX+ 2, bp, POS_ML);
+	_piece(g.oxoY+ 6, g.oxoX+12, bp, POS_MC);
+	_piece(g.oxoY+ 6, g.oxoX+22, bp, POS_MR);
+
+	_piece(g.oxoY+12, g.oxoX+ 2, bp, POS_BL);
+	_piece(g.oxoY+12, g.oxoX+12, bp, POS_BC);
+	_piece(g.oxoY+12, g.oxoX+22, bp, POS_BR);
 
 	fflush(stdout);
 }
@@ -333,8 +358,8 @@ int  wOpt = 13;  // width of an option
 void  optShow (board_s* bp)
 {
 	int  cidx = 0;
-	while (cidx < bp->cCnt)  oxo(cidx++, bp->chld[cidx], (cidx *wOpt) +1) ;
-	while (cidx < 9       )  oxo(cidx++, &g.b[0],        (cidx *wOpt) +1) ;
+	while (cidx < bp->cCnt)  oxo(cidx++, bp->chld[cidx], (cidx *wOpt) +2) ;
+	while (cidx < 9       )  oxo(cidx++, &g.b[0],        (cidx *wOpt) +2) ;
 }
 
 //+============================================================================
@@ -346,9 +371,144 @@ int   optChk (int* in)
 	if (INRANGE(g.my, g.yOpt, g.yOpt +h)) {  // y coord for options
 		int x = (g.mx -1) /wOpt;             // selection
 		if (INRANGE(x, 0, 8)) {              // 0..8
-			if ( INRANGE(g.mx, (x*wOpt)+1, (x*wOpt)+wOpt-2) )
+			if ( INRANGE(g.mx, (x*wOpt)+2, (x*wOpt)+wOpt-1) )
 				return (*in = x + '0');      // fake like we just pressed the number
 		}
 	}
 	return -1;
+}
+
+//----------------------------------------------------------------------------- ---------------------------------------
+static  int  ovkID = -1;
+
+//+============================================================================
+void  shadow (board_s* bp,  int opt,  int pos)
+{
+	static  int  pos_ = -1;
+
+	if (pos == pos_)  return ;
+
+	switch (pos_) {
+		case POS_TL :  _piece(g.oxoY+ 0, g.oxoX+ 2, bp, -1);  break ;
+		case POS_TC :  _piece(g.oxoY+ 0, g.oxoX+12, bp, -1);  break ;
+		case POS_TR :  _piece(g.oxoY+ 0, g.oxoX+22, bp, -1);  break ;
+
+		case POS_ML :  _piece(g.oxoY+ 6, g.oxoX+ 2, bp, -1);  break ;
+		case POS_MC :  _piece(g.oxoY+ 6, g.oxoX+12, bp, -1);  break ;
+		case POS_MR :  _piece(g.oxoY+ 6, g.oxoX+22, bp, -1);  break ;
+
+		case POS_BL :  _piece(g.oxoY+12, g.oxoX+ 2, bp, -1);  break ;
+		case POS_BC :  _piece(g.oxoY+12, g.oxoX+12, bp, -1);  break ;
+		case POS_BR :  _piece(g.oxoY+12, g.oxoX+22, bp, -1);  break ;
+
+		default:
+		case -1     : break ;
+	}
+
+	pos_ = pos;
+	if (opt < 0)  return ;
+
+	switch (pos) {
+		case POS_TL :  _piece(g.oxoY+ 0, g.oxoX+ 2, bp->chld[opt], pos+10);  break ;
+		case POS_TC :  _piece(g.oxoY+ 0, g.oxoX+12, bp->chld[opt], pos+10);  break ;
+		case POS_TR :  _piece(g.oxoY+ 0, g.oxoX+22, bp->chld[opt], pos+10);  break ;
+
+		case POS_ML :  _piece(g.oxoY+ 6, g.oxoX+ 2, bp->chld[opt], pos+10);  break ;
+		case POS_MC :  _piece(g.oxoY+ 6, g.oxoX+12, bp->chld[opt], pos+10);  break ;
+		case POS_MR :  _piece(g.oxoY+ 6, g.oxoX+22, bp->chld[opt], pos+10);  break ;
+
+		case POS_BL :  _piece(g.oxoY+12, g.oxoX+ 2, bp->chld[opt], pos+10);  break ;
+		case POS_BC :  _piece(g.oxoY+12, g.oxoX+12, bp->chld[opt], pos+10);  break ;
+		case POS_BR :  _piece(g.oxoY+12, g.oxoX+22, bp->chld[opt], pos+10);  break ;
+
+		default:
+		case -1     : break ;
+	}
+}
+
+//+============================================================================
+#define  TL  "\u250C"
+#define  TR  "\u2510"
+#define  BL  "\u2514"
+#define  BR  "\u2518"
+#define  H   "\u2500"
+#define  V   "\u2502"
+#define  D   "\b\e[1B"
+
+void box_ (int opt,  char* tl, char* tr, char* bl, char* br, char* h, char* v)
+{
+	int  hh = g.hide ? 5 : (g.loop ==9) ? 8 : 18 ;
+
+	goyx(g.yOpt-1, (opt*wOpt)+1);
+	printf(tl);
+	for (int i = 1;  i < wOpt-1;  i++)  printf(h);
+	printf("%s%s", tr, D);
+
+	for (int i = 0;  i <= hh;  i++)  printf("%s%s", v, D);
+	goyx(g.yOpt, (opt*wOpt)+1);
+	for (int i = 0;  i <= hh;  i++)  printf("%s%s", v, D);
+
+	printf(bl);
+	for (int i = 1;  i < wOpt-1;  i++)  printf(h);
+	printf(br);
+}
+
+void  box (int opt)
+{
+	static  int opt_ = -1;
+
+	if (opt == opt_)  return ;
+	ink(LGRY);
+	if (opt_ >= 0)  box_(opt_, " ", " ", " ", " ", " ", " ") ;
+	if (opt  >= 0)  box_(opt, TL, TR, BL, BR, H, V) ;
+
+	opt_ = opt;
+}
+
+#undef  TL
+#undef  TR
+#undef  BL
+#undef  BR
+#undef  H
+#undef  V
+#undef  D
+
+//+============================================================================
+void  overkill (board_s* bp)
+{
+	int  in;
+	int  opt = -1;
+	int  pos = -1;
+
+	curoff();
+
+	if (!bp) {
+		box(-1);
+		shadow(NULL, 0, -1);
+		goto done;
+	}
+
+//	goyx(g.yy+4,24);  printf("\e[K");
+
+	if ((opt = optChk(&in)) >= 0) {
+		opt -= '0';
+		if (g.pref[opt].ink != C_INVALID)  pos = bp->chld[opt]->seq &0xF ;
+
+	} else if ((pos = oxoChk()) >= 0) {
+		for (opt = 8;  opt >= 0;  opt--)
+			if (g.pref[opt].ink == C_INVALID)           continue ;
+			else if (pos == (bp->chld[opt]->seq &0xF))  break ;
+		if (opt == -1)  pos = -1 ;
+	}
+
+	shadow(bp, opt, pos);
+	box(opt);
+
+//	goyx(g.yy+4, 24);  printf("opt=%d -> pos=%d", opt, pos);
+
+done:
+	goyx(g.my, g.mx);
+	curon();
+
+	return;
 }

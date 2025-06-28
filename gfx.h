@@ -36,7 +36,8 @@ mnuOpt_e  menuChk   (int y,  int x) ;
 void      menuShow  (int y,  int x) ;
 void      menuClear (void) ;
 
-void      oxoBig    (int y,  int x,  board_s* bp) ;
+void      oxoBig    (board_s* bp) ;
+int       oxoChk    (void) ;
 
 void      oxo       (int id,  board_s* bp,  int x) ;
 
@@ -49,6 +50,8 @@ int       optChk    (int* in) ;
 void      modeShow  (int y,  int x) ;
 void      modeClear (void) ;
 int       modeChk   (void) ;
+
+void      overkill  (board_s* bp) ;
 
 #endif //GFX_H_
 

@@ -48,7 +48,7 @@ int  tictac (void)
 	// === let's get this starty parted... ===
 	for (g.move++;  ;  g.move++) {
 
-		oxoBig(7, 38, bp);  // Draw the main board
+		oxoBig(bp);  // Draw the main board
 
 		// which children are in play ?   (standard, or loop)
 		// {0..cnt-1} or {cnt..cCnt-1} ... the -1 is affected with `< nd` in the loops
@@ -110,14 +110,18 @@ int  tictac (void)
 			// Mouse input will simulate keystrokes
 			//----------------------------------------------
 			if (MOUSE_ISRPT(in)) {
+				int  pos;
+
 				// decode the event
 				g.mev = MOUSE_EVENT(in);
 				g.my  = MOUSE_Y(in);
 				g.mx  = MOUSE_X(in);
 //				MSGFYX(g.yy+4,0, "Mouse: %3d @ %3d,%-3d", g.mev, g.my, g.mx);
 
-				// OnClick event
-				if ((g.mev == MEV_BTN_L) && MOUSE_ISDOWN(in)) {
+				if (g.mev == MEV_POS) {
+					overkill(bp);
+
+				} else if ((g.mev == MEV_BTN_L) && MOUSE_ISDOWN(in)) {
 					// game mode {5..9}
 					int  m = modeChk();
 					if (m) {
@@ -128,6 +132,13 @@ int  tictac (void)
 					// option {0..8}
 					} else if (optChk(&in) >= 0) {
 						(void)NULL;
+
+					// option {0..8}
+					} else if ((pos = oxoChk()) >= 0) {
+						for (in = 8;  in >= 0;  in--)
+							if (g.pref[in].ink == C_INVALID)           continue ;
+							else if (pos == (bp->chld[in]->seq &0xF))  break ;
+						in += '0';
 
 					// menu options
 					} else {
@@ -140,6 +151,9 @@ int  tictac (void)
 							default :  break ;
 						}
 					}
+
+				} else if ((g.mev == MEV_BTN_R) && MOUSE_ISDOWN(in)) {
+					in = KEY_LEFT ;
 				}
 			}
 
@@ -156,7 +170,7 @@ int  tictac (void)
 
 				// we draw the master board BEFORE we flipped the parity!
 				g.par ^= (bp->cnt == g.loop);
-				oxoBig(7, 38, bp);  // Draw the main board
+				oxoBig(bp);  // Draw the main board
 				g.par ^= (bp->cnt == g.loop);
 
 				continue;
@@ -209,6 +223,8 @@ redo:
 		// Show move sequence
 		seqShow(g.yy, g.move);
 
+		overkill(NULL);
+
 continue2:
 		MSGFYX(g.yy+3,0, "\e[K");  // clear status line
 	}//never exits
@@ -252,6 +268,9 @@ int main (int argc,  char* argv[])
 
 	g.yOpt = 26;  // y coord for options
 	g.yy   = 46;  // coord for sequence (other stuff below it)
+
+	g.oxoY = 7;   // main board
+	g.oxoX = 38;  // ...
 
 	// game style :
 	//   5 = the 'online' version
@@ -304,7 +323,7 @@ int main (int argc,  char* argv[])
 	kbdInit();
 
 	(void)termSave(NULL);        // save window size
-	(void)termSet(115, g.yy+3);  // set window size
+	(void)termSet(117, g.yy+3);  // set window size
 
 	(void)mouse(MRPT_ALL);       // enable mouse
 

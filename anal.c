@@ -81,7 +81,6 @@ void  analyse (board_s* bp,  int st,  int nd)
 //	if ((g.loop == 9) || (g.move < g.loop -1)) {
 	if (g.loop == 9) {
 		simpleMinMax(bp, st, nd);
-		return;
 	}
 
 	// Spot obvious wins & loses
@@ -103,23 +102,26 @@ void  oxoAnal (int id,  board_s* bp,  int x)
 
 //		goyx(g.yOpt+9,x);  printf("%d/%d", bp->win, bp->lin);
 
-		if (g.loop == 9)  return ;
+		if (g.loop == 9)                  return ;  // no lookahead required for normal game
+		if (g.pref[id].ink == C_INVALID)  return ;  // nor boards flagged as invalid
 
-		if (g.pref[id].ink != C_INVALID) {
-			for (int i = 1;  i <= 6;  i++) {
-				int yy = g.yOpt +9 +i +(i>=5) +(i>=6);
-				goyx(yy, x);
-				if (!bp->win) {
-					int*  w = lookahead(bp, i);
+		// let's dig 6 moves ahead
+		for (int i = 1;  i <= 6;  i++) {
 
-					if (i==1)      ink(BWHT) ;                          // Immediate-child
-					else if (i&1)  ink(((g.move+i)&1) ?  RED :  CYN) ;  // RED=A/O, CYN=B/X
-					else           ink(((g.move+i)&1) ? BRED : BCYN) ;  // BRT=my move, DIM=their move
+			int yy = g.yOpt +9 +i +(i>=5) +(i>=6);  // 4, 5, 6 are have a second line of info
+			goyx(yy, x);
 
-					printf("%d: %d/%d", i, w[0^(i&1)], w[1^(i&1)]);
-					if (i >= 4)  MSGFYX(yy+1, x, "==%d", w[0^(i&1)] - w[1^(i&1)]);
-				}
+			// Winners don't have children!
+			if (!bp->win) {
+				int*  w = lookahead(bp, i);  // lookahead() returns `int wins[2]`
+
+				if (i&1)  ink(((g.move+i)&1) ?  RED :  CYN) ;  // RED=A/O, CYN=B/X
+				else      ink(((g.move+i)&1) ? BRED : BCYN) ;  // BRT=my move, DIM=their move
+
+				printf("%d: %d/%d", i, w[0^(i&1)], w[1^(i&1)]);
+				if (i >= 4)  MSGFYX(yy+1, x, "==%d", w[0^(i&1)] - w[1^(i&1)]);
 			}
 		}
 	}
+
 }
