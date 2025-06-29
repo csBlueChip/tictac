@@ -5,6 +5,8 @@
 
 #include  "tictac.h"
 
+#define  ARRCNT(a)  ( sizeof(a) / sizeof(*(a)) )
+
 #define  INRANGE(x,min,max)  ({      \
 	typeof(x)   _x   = x;            \
 	typeof(min) _min = min;          \

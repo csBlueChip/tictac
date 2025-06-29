@@ -15,9 +15,13 @@
 #include  "logic.h"
 #include  "anal.h"
 #include  "version.h"
+#include  "bot.h"
 
 #define  NDEBUG
 #include  "debug.h"
+
+#include  <time.h>
+#include  <stdlib.h>
 
 //----------------------------------------------------------------------------- ---------------------------------------
 // global variables - extern'ed
@@ -46,6 +50,7 @@ int  tictac (void)
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	// === let's get this starty parted... ===
+	int in;
 	for (g.move++;  ;  g.move++) {
 
 		oxoBig(bp);  // Draw the main board
@@ -58,19 +63,23 @@ int  tictac (void)
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// Opinion time...
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		in  = -1;  // input / option choice
 
 		// no preferred move
 		memset(g.pref, 0, sizeof(g.pref));
 		int  cidx = 0;
 		for (  ;  cidx < st;  g.pref[cidx++].ink = C_INVALID ) ;
-		for (  ;  cidx < nd;  g.pref[cidx++].ink = C_FAIR    ) ;
+		for (  ;  cidx < nd;  g.pref[cidx++].ink = bp->win ? C_INVALID : C_FAIR) ;
 		for (  ;  cidx < 9 ;  g.pref[cidx++].ink = C_INVALID ) ;
 		g.pref[cidx].ink = C_GAME;  // {9} is the game board  (unused, for now)
 
-		if (!bp->win)  analyse(bp, st, nd) ;  // Winners don't have children
+		if (!bp->win) {  // Winners don't have children
+			analyse(bp, st, nd);
+			if (!(g.move & 1) && g.bot[g.botID].fn)  (void)g.bot[g.botID].fn(&in, st, nd) ;
+    	}
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// User Input handling
+		// User/Bot Input handling
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 		// when the current board contains `loop` pieces, we need to flip the parity
@@ -78,10 +87,9 @@ int  tictac (void)
 		g.par ^= (bp->cnt == g.loop);
 
 		// draw ALL children (even greyed out moves)
-		optShow(bp);
+		if (in == -1)  optShow(bp) ;
 
 		// input move
-		int  in  = 0;
 		for (;;) {
 			int  over = 0;  // game over status
 
@@ -101,11 +109,12 @@ int  tictac (void)
 			// Get user input
 			//----------------------------------------------
 			goyx(g.my, g.mx);  // position mouse
-			do {
-				while (!kbhit())  usleep(1000) ;   // wait for a key (1mS == 1'000uS)
-				in = getchw();                     // get the (wide-)key
-			} while ((in == ',') || (in == ' ') || (in == '\r'));  // allow paste of previous game
-
+			if (in == -1) {
+				do {
+					while (!kbhit())  usleep(1000) ;   // wait for a key (1mS == 1'000uS)
+					in = getchw();                     // get the (wide-)key
+				} while ((in == ',') || (in == ' ') || (in == '\r'));  // allow paste of previous game
+			}
 			//----------------------------------------------
 			// Mouse input will simulate keystrokes
 			//----------------------------------------------
@@ -119,15 +128,32 @@ int  tictac (void)
 //				MSGFYX(g.yy+4,0, "Mouse: %3d @ %3d,%-3d", g.mev, g.my, g.mx);
 
 				if (g.mev == MEV_POS) {
-					overkill(bp);
+					if (!bp->win)  overkill(bp) ;
 
 				} else if ((g.mev == MEV_BTN_L) && MOUSE_ISDOWN(in)) {
 					// game mode {5..9}
 					int  m = modeChk();
 					if (m) {
-						in     = KEY_CTRL_R;
-						g.loop = m;
+						if (g.bot[g.botID].loop == -1) {
+							in     = KEY_CTRL_R;
+							g.loop = m;
+							modeShow(13, 5);  //!
+						}
+
+					// bots
+					} else if ((m = botChk()) != BOT_NONE) {
+						// in/out of pvp - restart game
+						if        ((m == BOT_PVP) && (g.botID != BOT_PVP)) {
+							in = KEY_CTRL_R;
+
+						} else if ((m != BOT_PVP) && (g.botID == BOT_PVP)) {
+							g.hide = 1;
+							in = KEY_CTRL_R;
+						}
+						botSet(m);
+						menuShow(16, 5);  //!
 						modeShow(13, 5);  //!
+						botShow();
 
 					// option {0..8}
 					} else if (optChk(&in) >= 0) {
@@ -164,16 +190,18 @@ int  tictac (void)
 				in = '0';
 
 			} else if (in == KEY_CTRL_A) {                      // ^A analysis show/hide
-				g.hide ^= 1;
-				optShow(bp);
-				menuShow(16, 5);  //!
+				if (g.botID == BOT_PVP) {
+					g.hide ^= 1;
+					optShow(bp);
+					menuShow(16, 5);  //!
 
-				// we draw the master board BEFORE we flipped the parity!
-				g.par ^= (bp->cnt == g.loop);
-				oxoBig(bp);  // Draw the main board
-				g.par ^= (bp->cnt == g.loop);
+					// we draw the master board BEFORE we flipped the parity!
+					g.par ^= (bp->cnt == g.loop);
+					oxoBig(bp);  // Draw the main board
+					g.par ^= (bp->cnt == g.loop);
 
-				continue;
+//					continue;
+				}
 
 			} else if (in == KEY_CTRL_C) {                      // ^C quit
 				ink(NORM);
@@ -191,7 +219,7 @@ int  tictac (void)
 				}
 
 			} else if ( ((in == KEY_BKSP) || (in == KEY_LEFT))  // <-- undo : ASCII(DEL) [not ASCII(BS)]
-			            && (g.move > 1) ) {
+			            && (g.move > 1) && (g.botID == BOT_PVP)) {
 				// we want to end up on move-1, but the loop iterator does move++
 				g.move -= 2;
 
@@ -211,6 +239,8 @@ int  tictac (void)
 				if ((in >= 0 ) && (in <= 8))
 					MSGFYX(g.yy+3,0, "Bad move: %d\e[K", in);
 			}
+
+			in = -1;
 		}
 
 		// make the move!
@@ -244,6 +274,8 @@ int main (int argc,  char* argv[])
 {
 	cls();
 
+	srand(time(NULL));
+
 	printf("# %s %s .. Copyright %s, %s\n", TOOLNAME, VER_STR, AUTHOR, DATE);
 //	printf("# Use: %s [5|6|7|8|9] [-a]\n", argv[0]);
 
@@ -271,6 +303,10 @@ int main (int argc,  char* argv[])
 
 	g.oxoY = 7;   // main board
 	g.oxoX = 38;  // ...
+
+	g.botY = 13;  // bot menu
+	g.botX = 77;  // ...
+	botSetup();
 
 	// game style :
 	//   5 = the 'online' version
@@ -314,6 +350,7 @@ int main (int argc,  char* argv[])
 
 	modeShow(13, 5);  //!
 	menuShow(16, 5);  //!
+	botShow();
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// Configure everything

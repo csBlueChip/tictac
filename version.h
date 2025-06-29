@@ -3,12 +3,13 @@
 
 // 0.7.0 - first release .. AI incomplete
 // 0.8.0 - full screen selection (with mouse)
+// 0.9.0 - now with basic AI
 
 #define  TOOLNAME  "TicTac"
 
 #define  VER_MAJ   0
-#define  VER_MIN   8
-#define  VER_SUB   1
+#define  VER_MIN   9
+#define  VER_SUB   0
 
 #define  STR_(x)   #x
 #define  STR(x)    STR_(x)

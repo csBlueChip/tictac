@@ -53,5 +53,8 @@ int       modeChk   (void) ;
 
 void      overkill  (board_s* bp) ;
 
+void      botShow   (void) ;
+bot_e     botChk    (void) ;
+
 #endif //GFX_H_
 

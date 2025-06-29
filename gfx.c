@@ -1,12 +1,13 @@
 #include  <stdio.h>
 
-#include  "anal.h"
 #include  "ansi.h"
+#include  "anal.h"
 #include  "tictac.h"
 #include  "macro.h"
 #include  "gfx.h"
 #include  "logic.h"
 #include  "conio.h"
+#include  "bot.h"
 
 //+============================================================================
 // g.prefs is an array of struct {0..8} are for each board option
@@ -218,6 +219,34 @@ void  oxoBig (board_s* bp)
 	fflush(stdout);
 }
 
+//+============================================================================ =======================================
+void  botShow (void)
+{
+	for (int i = 1;  i < BOT_CNT;  i++) {
+		goyx(g.botY +((i-1)*2), g.botX);
+		ink(BYEL);
+		if (i == g.botID) {
+			paper(ONRED);
+			printf(" > %s < ", g.bot[i].name);
+		} else {
+			paper(ONBLK);
+			printf("   %s   ", g.bot[i].name);
+		}
+	}
+	fflush(stdout);
+}
+
+//+============================================================================
+bot_e  botChk (void)
+{
+	if (!INRANGE(g.mx, g.botX, g.botX+10))  return BOT_NONE ;
+
+	int i;
+	for (i = BOT_CNT -1;  i > 0;  i--)
+		if ( g.my == g.botY +((i-1)*2) )  break ;
+	return i;
+}
+
 //----------------------------------------------------------------------------- ---------------------------------------
 static  int               mnuY       = -1;
 static  int               mnuX       = -1;
@@ -243,6 +272,10 @@ void  menuShow (int y,  int x)
 	if (!g.hide) {
 		paper(ONRED);
 		goyx(y, x+16);  printf("[ANAL]");
+
+	} else if (g.botID != BOT_PVP) {
+		ink(DGRY);
+		goyx(y, x);  printf(menuStr1);
 	}
 
 	fflush(stdout);
@@ -284,11 +317,12 @@ void  modeShow (int y,  int x)
 	modeY = y;
 	modeX = x;
 
-	ink(BYEL);
 	paper(ONBLK);
 	goyx(y, x);
 	for (int i = 5;  i <= 9;  i++) {
+		ink(BYEL);
 		if (g.loop == i)  paper(ONRED) ;
+		else if (g.bot[g.botID].loop != -1)  ink(DGRY) ;
 		printf("[%d]", i);
 		paper(ONBLK);
 		printf("  ");

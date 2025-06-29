@@ -3,6 +3,8 @@
 
 #include  <stdint.h>
 
+#include  "bot.h"
+
 //----------------------------------------------------------------------------- ---------------------------------------
 // board positions
 // various iterations of the code have used different layouts (eg. to simplify rotation)
@@ -149,6 +151,9 @@ typedef
 
 		pref_t   pref[10];        // (up to) 9 possible moves + 1 for the game board
 
+		int      botY, botX;
+		bot_e    botID;
+		bot_s    bot[BOT_CNT];
 	}
 global_s;
 
