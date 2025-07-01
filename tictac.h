@@ -154,6 +154,7 @@ typedef
 		int      botY, botX;
 		bot_e    botID;
 		bot_s    bot[BOT_CNT];
+		int      hint;
 	}
 global_s;
 

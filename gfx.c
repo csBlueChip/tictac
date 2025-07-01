@@ -273,9 +273,12 @@ void  menuShow (int y,  int x)
 		paper(ONRED);
 		goyx(y, x+16);  printf("[ANAL]");
 
-	} else if (g.botID != BOT_PVP) {
+	} else if (g.bot[g.botID].fn) {
 		ink(DGRY);
 		goyx(y, x);  printf(menuStr1);
+		ink(BYEL);
+		if (g.hint)  paper(ONRED) ;
+		goyx(y, x+16);  printf("[HINT]");
 	}
 
 	fflush(stdout);
@@ -487,6 +490,7 @@ void box_ (int opt,  char* tl, char* tr, char* bl, char* br, char* h, char* v)
 	printf(br);
 }
 
+//+============================================================================
 void  box (int opt)
 {
 	static  int opt_ = -1;

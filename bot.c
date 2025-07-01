@@ -5,23 +5,34 @@
 
 #include  <stdlib.h>
 
+//+============================================================================
 void  botSet (bot_e id)
 {
-	if (id == BOT_NONE)  return ;
+	static  int  prevHide = 1;
 
-	g.botID = id;
-	botShow();
+//	if (id == BOT_NONE)  return ;
 
-	if (id != BOT_PVP) {
-		if (!g.hide) {
-			g.hide = 1;
+	if (g.bot[id].fn) {  // isBot
+		if (!g.bot[g.botID].fn) {  // wasPVP
+			prevHide = g.hide;
+			g.hide   = 1;
 		}
+
 		if (g.bot[id].loop != -1) {
 			g.loop = g.bot[id].loop;
 		}
+
+	} else {             // isPVP
+		if (g.bot[g.botID].fn) {  // wasBot
+			g.hide = prevHide;
+		}
 	}
+
+	g.botID = id;
+	botShow();
 }
 
+//+============================================================================
 int  bot_jacob (int* in,  int st,  int nd)
 {
 	int  pick[9] = {0};
@@ -41,6 +52,7 @@ int  bot_jacob (int* in,  int st,  int nd)
 	return         key;
 }
 
+//+============================================================================
 int  bot_juanin (int* in,  int st,  int nd)
 {
 	int  pick[9] = {0};
@@ -63,6 +75,7 @@ int  bot_juanin (int* in,  int st,  int nd)
 	return  (*in = pick[rand()%pcnt] +'0') ;
 }
 
+//+============================================================================
 void  botSetup (void)
 {
 	g.bot[BOT_NONE]  = (bot_s){.fn=NULL      , .name=" ---  ",  .loop= 0};

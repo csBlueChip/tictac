@@ -76,7 +76,7 @@ int  tictac (void)
 		if (!bp->win) {  // Winners don't have children
 			analyse(bp, st, nd);
 			if (!(g.move & 1) && g.bot[g.botID].fn)  (void)g.bot[g.botID].fn(&in, st, nd) ;
-    	}
+		}
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// User/Bot Input handling
@@ -147,7 +147,6 @@ int  tictac (void)
 							in = KEY_CTRL_R;
 
 						} else if ((m != BOT_PVP) && (g.botID == BOT_PVP)) {
-							g.hide = 1;
 							in = KEY_CTRL_R;
 						}
 						botSet(m);
@@ -171,7 +170,7 @@ int  tictac (void)
 						switch (menuChk(g.my, g.mx)) {
 							case MNU_UNDO  :  in = KEY_LEFT;    break ;
 							case MNU_REDO  :  in = KEY_RIGHT;   break ;
-							case MNU_ANAL  :  in = KEY_CTRL_A;  break ;
+							case MNU_ANAL  :  in = g.bot[g.botID].fn ? KEY_CTRL_H : KEY_CTRL_A;  break ;
 							case MNU_AGAIN :  in = KEY_CTRL_R;  break ;
 							case MNU_QUIT  :  in = KEY_CTRL_C;  break ;
 							default :  break ;
@@ -189,8 +188,14 @@ int  tictac (void)
 			if        (in == '`') {                             // ` (bactick) -> '0'
 				in = '0';
 
+			} else if (in == KEY_CTRL_H) {                      // ^H hint show/hide
+				if (g.bot[g.botID].fn) {
+					g.hint ^= 1;
+					menuShow(16, 5);  //!
+				}
+
 			} else if (in == KEY_CTRL_A) {                      // ^A analysis show/hide
-				if (g.botID == BOT_PVP) {
+				if (!g.bot[g.botID].fn) {
 					g.hide ^= 1;
 					optShow(bp);
 					menuShow(16, 5);  //!
@@ -317,6 +322,7 @@ int main (int argc,  char* argv[])
 	g.loop = 9;  // assume normal game
 
 	g.hide = 1;  // hide analysis & disable hints
+	g.hint = 0;  // enable hints in bot mode
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// build every possible game
