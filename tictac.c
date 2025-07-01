@@ -192,6 +192,11 @@ int  tictac (void)
 				if (g.bot[g.botID].fn) {
 					g.hint ^= 1;
 					menuShow(16, 5);  //!
+
+					// we draw the master board BEFORE we flipped the parity!
+					g.par ^= (bp->cnt == g.loop);
+					oxoBig(bp);  // Draw the main board
+					g.par ^= (bp->cnt == g.loop);
 				}
 
 			} else if (in == KEY_CTRL_A) {                      // ^A analysis show/hide

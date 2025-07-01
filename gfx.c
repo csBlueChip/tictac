@@ -156,7 +156,8 @@ void  _piece (int y,  int x,  board_s* bp,  int pos)
 			ink(iconClr[occ][4]);
 			ico = icon[occ][1];
 
-		} else if (g.hide || (g.loop == 9)) {  // All look same
+		} else if (( g.bot[g.botID].fn && !g.hint) ||
+		           (!g.bot[g.botID].fn &&  g.hide) || (g.loop == 9)) {  // All look same
 			ink(iconClr[occ][0]);
 			ico = icon[occ][0];
 
