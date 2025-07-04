@@ -4,6 +4,7 @@
 #include  <stdbool.h>
 #include  <stdlib.h>
 #include  <stdio.h>
+#include  <sys/time.h>
 #include  <string.h>
 #include  <unistd.h>
 #include  <sys/select.h>
@@ -22,6 +23,8 @@ static  int             termW   = 0;
 static  int             termH   = 0;
 
 //+============================================================================ ========================================
+// Cursor ON
+//
 void  curon (void)
 {
 	printf("\e[?25h");
@@ -29,6 +32,8 @@ void  curon (void)
 }
 
 //+============================================================================
+// Cursor OFF
+//
 void  curoff (void)
 {
 	printf("\e[?25l");
@@ -36,7 +41,18 @@ void  curoff (void)
 }
 
 //+============================================================================ ========================================
-// ideally I would like to disable the keyboard & mouse scanning for a moment!
+/*
+static inline
+unsigned int  tmDiff_ms (struct timeval t0,  struct timeval t1)
+{
+    return ((t1.tv_sec - t0.tv_sec) *1000) + ((t1.tv_usec - t0.tv_usec) / 1000);
+}
+*/
+
+//+============================================================================
+// Retrieve terminal-window dimensions
+//
+// The reply is redirected to stdin (NOT stdout)
 //
 bool  termGet (int* rpt)
 {
@@ -46,8 +62,15 @@ bool  termGet (int* rpt)
 	if (rpt) {
 		int  r;
 		*rpt = 0;
+
+		struct timeval  st;
+		gettimeofday(&st, NULL);
+
 		while (!TERM_ISRPT((r = getchw()))) {
-			// if timeout - return false
+			struct timeval  now;
+			gettimeofday(&now, NULL);
+			if ( (((now.tv_sec - st.tv_sec) *1000) + ((now.tv_usec - st.tv_usec) /1000)) > TERM_TMO_MS )
+				return false ;
 		};
 		return (*rpt = r), true ;
 	}

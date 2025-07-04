@@ -236,6 +236,7 @@ keycap_t;
 #define  TERM_ISRPT(r)    ( ((r) & 0x0000FF00) == TRPT)
 #define  TERM_W(r)        ( MOUSE_X(r) )
 #define  TERM_H(r)        ( MOUSE_Y(r) )
+#define  TERM_TMO_MS      ( 50 )  /// Timeout in mS to wait for the terminal to report its size 
 
 #define  KEY_ISSYS(w)     ( ((w) & 0x0000FF00) == KEYM_SYS  )
 #define  KEY_ISINTL(w)    ( ((w) & 0x0000FF00) == KEYM_INTL )

@@ -1,6 +1,7 @@
 #ifndef  BOT_H_
 #define  BOT_H_
 
+//-----------------------------------------------------------------------------
 // Available Bots
 typedef
 	enum bot_e {
@@ -15,6 +16,7 @@ typedef
 	}
 bot_e;
 
+//-----------------------------------------------------------------------------
 // Bot function prototype
 typedef  int(bot_fn)(int*, int, int) ;
 

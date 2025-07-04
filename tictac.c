@@ -138,7 +138,7 @@ int  tictac (void)
 							in     = KEY_CTRL_R;
 							g.loop = m;
 							analClr(-1);
-							modeShow(13, 5);  //!
+							modeShow();
 						}
 
 					// -------------------------------------
@@ -153,7 +153,7 @@ int  tictac (void)
 						}
 						botSet(m);
 						menuShow();
-						modeShow(13, 5);  //!
+						modeShow();
 						botShow();
 
 					// -------------------------------------
@@ -172,7 +172,7 @@ int  tictac (void)
 					// -------------------------------------
 					// menu options
 					} else {
-						switch (menuChk(g.my, g.mx)) {
+						switch (menuChk()) {
 							case MNU_UNDO  :  in = KEY_LEFT;    break ;
 							case MNU_REDO  :  in = KEY_RIGHT;   break ;
 							case MNU_ANAL  :  in = g.bot[g.botID].fn ? KEY_CTRL_H : KEY_CTRL_A;  break ;
@@ -242,7 +242,7 @@ int  tictac (void)
 				g.par  ^= (g.move+1 == g.loop);
 
 				bp      = g.play[g.move].bp;
-				seqShow(g.seqY, g.move);
+				seqShow(g.move);
 
 				goto continue2;
 			}
@@ -267,7 +267,7 @@ redo:
 		bp                  = bp->chld[in];  // board in play
 
 		// Show move sequence
-		seqShow(g.seqY, g.move);
+		seqShow(g.move);
 
 		overkill(NULL);
 
@@ -314,20 +314,23 @@ int main (int argc,  char* argv[])
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	memset(&g, 0, sizeof(g));
 
-	g.optY = 26;  // y coord for options
-	g.seqY = 48;  // coord for sequence (other stuff below it)
+	g.optY = 26;   // y coord for options
+	g.seqY = 48;   // coord for sequence (other stuff below it)
 
-	g.oxoY = 7;   // main board
-	g.oxoX = 38;  // ...
+	g.oxoY = 7;    // main board
+	g.oxoX = 38;   // ...
 
-	g.botY = 12;  // bot menu
-	g.botX = 77;  // ...
+	g.botY = 12;   // bot menu
+	g.botX = 77;   // ...
 	botSetup();
 
-	g.optW = 13;  // Width of an option
+	g.optW = 13;   // Width of an option
 
-	g.mnuY = 16;  // main menu
-	g.mnuX = 5;   // ...
+	g.mnuY = 16;   // main menu
+	g.mnuX = 5;    // ...
+
+	g.modeY = 13;  // game mode menu {6..9}
+	g.modeX = 5;   // ...
 
 	// game style :
 	//   5 = the 'online' version
@@ -370,7 +373,7 @@ int main (int argc,  char* argv[])
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	printf("# Show analysis: %s\n", g.hide?"No":"Yes");
 
-	modeShow(13, 5);  //!
+	modeShow();
 	menuShow();
 	botShow();
 

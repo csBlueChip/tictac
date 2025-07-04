@@ -5,35 +5,13 @@
 
 #include  <stdlib.h>
 
-//+============================================================================
-void  botSet (bot_e id)
-{
-	static  int  prevHide = 1;
-
-//	if (id == BOT_NONE)  return ;
-
-	if (g.bot[id].fn) {  // isBot
-		if (!g.bot[g.botID].fn) {  // wasPVP
-			prevHide = g.hide;
-			g.hide   = 1;
-		}
-
-		if (g.bot[id].loop != -1) {
-			g.loop = g.bot[id].loop;
-		}
-
-	} else {             // isPVP
-		if (g.bot[g.botID].fn) {  // wasBot
-			g.hide = prevHide;
-		}
-	}
-
-	g.botID = id;
-	botShow();
-}
-
-//+============================================================================
+//+============================================================================ =======================================
 // can only play a normal game - will never lose
+
+
+//! FFS, the little shit loses!!  You play: middle-right, bottom-left, bottom-right
+
+
 //
 int  bot_jacob (int* in,  int st,  int nd)
 {
@@ -108,7 +86,38 @@ int  bot_david (int* in,  int st,  int nd)
 	return  (*in = pick[rand()%pcnt] +'0') ;
 }
 
-//+============================================================================
+//+============================================================================ =======================================
+// Activate a Bot/PvP
+//
+void  botSet (bot_e id)
+{
+	static  int  prevHide = 1;
+
+//	if (id == BOT_NONE)  return ;
+
+	if (g.bot[id].fn) {  // isBot
+		if (!g.bot[g.botID].fn) {  // wasPVP
+			prevHide = g.hide;
+			g.hide   = 1;
+		}
+
+		if (g.bot[id].loop != -1) {
+			g.loop = g.bot[id].loop;
+		}
+
+	} else {             // isPVP
+		if (g.bot[g.botID].fn) {  // wasBot
+			g.hide = prevHide;
+		}
+	}
+
+	g.botID = id;
+	botShow();
+}
+
+//+============================================================================ =======================================
+// system config
+//
 void  botSetup (void)
 {
 	g.bot[BOT_NONE]   = (bot_s){.fn=NULL      , .name=" ---  ",  .loop= 0};
@@ -119,4 +128,3 @@ void  botSetup (void)
 
 	g.botID = BOT_PVP;
 }
-

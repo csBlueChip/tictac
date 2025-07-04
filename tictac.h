@@ -25,11 +25,11 @@
 //----------------------------------------------------------------------------- ---------------------------------------
 // A single board
 //
-// Every time you loop from a move-6 board to another move-6 board, the parity of the game inverts
+// Every time you loop from a move-N board to another move-N board, the parity of the game inverts
 // At the beginning of the game player-A is player-1 (O's),
 //                          and player-B is player-2 (X's)
 // When the parity inverts, A and B swap players
-// The first time the parity inversion happens is when player-1 lays their 4th piece (ie. piece 7)
+// The first time the parity inversion happens is when player-1 lays their (N/2+1)th piece (ie. piece N+1)
 // ...from thereonin it happens EVERY turn
 //
 // We can say:  
@@ -94,7 +94,7 @@ board_s;
 //	---+---+---
 //	 X | X | X
 //
-
+//
 // each board will gain some stats when we consider its strength
 //
 // "amb" (a minus b) is the difference of how many win states exist in the FULL (9-move) game, from this point
@@ -128,41 +128,33 @@ play_t;
 //
 typedef
 	struct {
-		int      hide;            // hide ananlysis
-
 		board_s  b[BMAX];         // boards
 		int      bn;              // number of populated boards (<= BMAX)
 		int      max;             // max pieces allowed on a board
 		int      par;             // game parity {0->{A=1/O, B=2/X}, 1->{A=2/X, B=1/O}}
 		int      loop;            // game mode (loop=9 is a normal/classic game)
-		int      yy;              // first line of interface
+
+		int      hide;            // hide ananlysis
+		pref_t   pref[10];        // (up to) 9 possible moves + 1 for the game board
 
 		int      last;            // last move (for "redo")
 		int      move;            // move number
 		play_t   play[MOVE_MAX];  // undo/redo buffer
 
-//		int      mouse;           // mouse enabled
 		int      mev;             // mouse event
 		int      my, mx;          // mouse x,y
 
 		int      oxoY, oxoX;      // big board y, x
-
-		int      optY;            // Y coordinate of options
-
+		int      modeY, modeX;    // coords of game mode menu {6..9}
+		int      mnuY, mnuX;      // coords of menu
+		int      optY, optW;      // Y coordinate & Width of options
+		int      analH;           // Analysis height
 		int      seqY;            // Y coord for sequence output (first status line)
 
-		int      analH;           // Analysis height
-
-		int      optW;            // Width of an option
-
-		int      mnuY, mnuX;      // coords of menu
-
-		pref_t   pref[10];        // (up to) 9 possible moves + 1 for the game board
-
-		int      botY, botX;
-		bot_e    botID;
-		bot_s    bot[BOT_CNT];
-		int      hint;
+		int      botY, botX;      // Bot menu
+		bot_e    botID;           // active bot
+		bot_s    bot[BOT_CNT];    // bot details
+		int      hint;            // hint mode active [qv. menu]
 	}
 global_s;
 

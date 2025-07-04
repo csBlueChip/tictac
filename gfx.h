@@ -32,7 +32,7 @@ typedef
 mnuOpt_e;
 
 //----------------------------------------------------------------------------- ---------------------------------------
-mnuOpt_e  menuChk   (int y,  int x) ;
+mnuOpt_e  menuChk   (void) ;
 void      menuShow  (void) ;
 void      menuClear (void) ;
 
@@ -41,13 +41,13 @@ int       oxoChk    (void) ;
 
 void      oxo       (int id,  board_s* bp,  int x) ;
 
-void      seqShow   (int y,  int cnt) ;
+void      seqShow   (int cnt) ;
 void      seqClear  (void) ;
 
 void      optShow   (board_s* bp) ;
 int       optChk    (int* in) ;
 
-void      modeShow  (int y,  int x) ;
+void      modeShow  (void) ;
 void      modeClear (void) ;
 int       modeChk   (void) ;
 

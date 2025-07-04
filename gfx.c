@@ -25,13 +25,15 @@ void  _analClr (int x)
 }
 
 //+============================================================================
+// -1 will clear ALL analysis blocks
+//
 void  analClr (int x)
 {
 	if (x != -1)  _analClr(x);
 	else          for (int i = 0;  i < 9;  i++)  _analClr(OPTX(i)) ;
 }
 
-//+============================================================================
+//+============================================================================ =======================================
 // Draw a SMALL oxo grid
 //
 // g.prefs is an array of struct {0..8} are for each board option
@@ -82,7 +84,7 @@ void  oxo (int id,  board_s* bp,  int x)
 //+============================================================================ =======================================
 // Draw the BIG grid
 //
-// This comment will stop `grep` from working! (cos unicode)
+// This comment MAY stop `grep` from working! (cos unicode)
 //
 //	  ▄   ▄  ║   ▄▄▄   ║
 //	  ▀▄ ▄▀  ║  █   █  ║
@@ -289,6 +291,10 @@ static  const char const  menuStr1[] = "[UNDO]  [REDO]  [ANAL]";
 static  const char const  menuStr2[] = "   [RESTART]  [QUIT]";
 
 //+============================================================================
+// Show Main Menu
+// ANAL is for non-Bot play - and shows full game analysis
+// HINT is for     Bot play - and, in looping games, shows pieces fading
+//
 void  menuShow (void)
 {
 	ink(BYEL);
@@ -315,6 +321,8 @@ void  menuShow (void)
 }
 
 //+============================================================================
+// erase main menu [never used]
+//
 void  menuClear (void)
 {
 	ink(NORM);
@@ -324,31 +332,28 @@ void  menuClear (void)
 }
 
 //+============================================================================
-mnuOpt_e  menuChk (int y,  int x)
+// is mouse over a main menu option
+//
+mnuOpt_e  menuChk (void)
 {
-	if        (y == g.mnuY) {
-		if (INRANGE(x, g.mnuX+ 0, g.mnuX+ 5))  return MNU_UNDO  ;
-		if (INRANGE(x, g.mnuX+ 8, g.mnuX+13))  return MNU_REDO  ;
-		if (INRANGE(x, g.mnuX+16, g.mnuX+21))  return MNU_ANAL  ;
-	} else if (y == g.mnuY+2) {
-		if (INRANGE(x, g.mnuX+ 3, g.mnuX+11))  return MNU_AGAIN ;
-		if (INRANGE(x, g.mnuX+14, g.mnuX+19))  return MNU_QUIT  ;
+	if        (g.my == g.mnuY) {
+		if (INRANGE(g.mx, g.mnuX+ 0, g.mnuX+ 5))  return MNU_UNDO  ;
+		if (INRANGE(g.mx, g.mnuX+ 8, g.mnuX+13))  return MNU_REDO  ;
+		if (INRANGE(g.mx, g.mnuX+16, g.mnuX+21))  return MNU_ANAL  ;
+	} else if (g.my == g.mnuY+2) {
+		if (INRANGE(g.mx, g.mnuX+ 3, g.mnuX+11))  return MNU_AGAIN ;
+		if (INRANGE(g.mx, g.mnuX+14, g.mnuX+19))  return MNU_QUIT  ;
 	}
 	return MNU_NONE;
 }
 
-//----------------------------------------------------------------------------- ---------------------------------------
-static  int  modeY = -1;
-static  int  modeX = -1;
-
-//+============================================================================
-void  modeShow (int y,  int x)
+//+============================================================================ =======================================
+// show Game Mode menu {6..9}
+//
+void  modeShow (void)
 {
-	modeY = y;
-	modeX = x;
-
 	paper(ONBLK);
-	goyx(y, x);
+	goyx(g.modeY, g.modeX);
 	for (int i = 5;  i <= 9;  i++) {
 		ink(BYEL);
 		if (g.loop == i)  paper(ONRED) ;
@@ -362,61 +367,57 @@ void  modeShow (int y,  int x)
 }
 
 //+============================================================================
+// is mouse over a mode option
+//
 int  modeChk (void)
 {
-	if (modeY == -1)  return 0 ;
+	if (g.modeY == -1)  return 0 ;
 
-	if (g.my == modeY)
+	if (g.my == g.modeY)
 		for (int i = 5-5;  i <= 9-5;  i++)
-			if ( INRANGE(g.mx, modeX+(i*5), g.mnuX+(i*5)+3) )  {
-				modeShow(modeY, modeX);
+			if ( INRANGE(g.mx, g.modeX+(i*5), g.mnuX+(i*5)+3) )  {
+				modeShow();
 				return i+5 ;
 			}
 	return 0;
 }
 
 //+============================================================================
+// erase mode menu [never used]
+//
 void  modeClear (void)
 {
 	ink(NORM);
-	goyx(modeY, modeX);
+	goyx(g.modeY, g.modeX);
 	printf("%*s", (5*5)-2, "");
 	fflush(stdout);
-
-	modeY = -1;
-	modeX = -1;
 }
 
-//----------------------------------------------------------------------------- ---------------------------------------
-static  int  seqY = -1;
-
-//+============================================================================
-void  seqShow (int y,  int cnt)
+//+============================================================================ =======================================
+// Show sequence .. moves that are available to 'redo' are in dark grey
+//
+void  seqShow (int cnt)
 {
+	ink(NORM);
+	MSGFYX(g.seqY,1, "\e[K");  // clear old sequence
+	goyx(g.seqY,1);
+
 	int  i = 0;
-
-	seqY = y;
-
-	MSGFYX(y,1, "\e[K");  // clear old sequence
-	goyx(y,1);
-
 	ink(BWHT);  while (i < g.move)  printf("%d, ", g.play[i++].in) ;
 	ink(DGRY);  while (i < g.last)  printf("%d, ", g.play[i++].in) ;
 }
 
 //+============================================================================
+// erase sequnce line
+//
 void  seqClear (void)
 {
-	if (seqY == -1)  return ;
-
-	MSGFYX(seqY,1, "\e[K");
-
-	seqY = -1;
+	MSGFYX(g.seqY,1, "\e[K");
 }
 
 //+============================================================================ =======================================
 // draw ALL children (even greyed out moves)
-
+//
 void  optShow (board_s* bp)
 {
 	int  cidx = 0;
@@ -425,6 +426,8 @@ void  optShow (board_s* bp)
 }
 
 //+============================================================================
+// is the mouse over an option ?
+//
 int   optChk (int* in)
 {
 	int  h = g.hide ? 5 : (g.loop ==9) ? 8 : 18 ;
@@ -440,10 +443,11 @@ int   optChk (int* in)
 	return -1;
 }
 
-//----------------------------------------------------------------------------- ---------------------------------------
-static  int  ovkID = -1;
-
-//+============================================================================
+//+============================================================================ =======================================
+// I got annoyed at ther beign no correlation between the BIG oxo and the analysis
+// so now, whichever one you highlight, the other is also highlighted
+// the stats get a box, the BIG oxo gets a shadow piece
+//
 void  shadow (board_s* bp,  int opt,  int pos)
 {
 	static  int  pos_ = -1;
@@ -489,6 +493,8 @@ void  shadow (board_s* bp,  int opt,  int pos)
 }
 
 //+============================================================================
+// Draw a box
+//
 #define  TL  "\u250C"   // box characters (single line)
 #define  TR  "\u2510"
 #define  BL  "\u2514"
@@ -516,6 +522,8 @@ void box_ (int opt,  char* tl, char* tr, char* bl, char* br, char* h, char* v)
 }
 
 //+============================================================================
+// (un)draw a box
+//
 void  box (int opt)
 {
 	static  int opt_ = -1;
@@ -537,35 +545,49 @@ void  box (int opt)
 #undef  D
 
 //+============================================================================
+// this is totally overkill for a O's & X's game - LOL !
+//
+// if you're pointing to an option, draw a shadow piece
+// if you're pointing to an empty grid location, highlight the option
+// NULL = UNdraw both
+//
 void  overkill (board_s* bp)
 {
 	int  in;
 	int  opt = -1;
 	int  pos = -1;
 
+	// stop the cursor flickering
 	curoff();
 
+	// undraw everything
 	if (!bp) {
 		box(-1);
 		shadow(NULL, 0, -1);
 		goto done;
 	}
 
+	// option highlighted
 	if ((opt = optChk(&in)) >= 0) {
+		// which grid position is it?
 		opt -= '0';
 		if (g.pref[opt].ink != C_INVALID)  pos = bp->chld[opt]->seq &0xF ;
 
+	// grid location highlighted
 	} else if ((pos = oxoChk()) >= 0) {
+		// which option is it?
 		for (opt = 8;  opt >= 0;  opt--)
 			if (g.pref[opt].ink == C_INVALID)           continue ;
 			else if (pos == (bp->chld[opt]->seq &0xF))  break ;
 		if (opt == -1)  pos = -1 ;
 	}
 
+	// draw them
 	shadow(bp, opt, pos);
 	box(opt);
 
 done:
+	// reset the mouse pointer
 	goyx(g.my, g.mx);
 	curon();
 
