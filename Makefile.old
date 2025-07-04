@@ -1,0 +1,36 @@
+EXE = tictac
+SRC = tictac.c conio.c gfx.c build.c logic.c anal.c bot.c
+LIB = -lc
+
+#------------------------------------------------------------------------------
+.phony : run
+run: 9
+
+#------------------------------------------------------------------------------
+# build with debug symbols
+#
+.phony: dbg
+dbg: clean
+	gcc -g $(LIB) $(SRC) -o $(EXE)
+
+#------------------------------------------------------------------------------
+# build for distro
+##
+.phony: all
+all: clean
+	gcc $(LIB) -DNDEBUG $(SRC) -o $(EXE)
+	strip -s $(EXE)
+
+#------------------------------------------------------------------------------
+# build and run (try to recover console in case of crash)
+#
+.phony : 5 6 7 8 9
+5 6 7 8 9: all
+	./$(EXE) $@ || stty sane >/dev/null 2>&1
+
+#------------------------------------------------------------------------------
+# clean
+#
+.phony : clean
+clean:
+	rm -f $(EXE)

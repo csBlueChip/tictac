@@ -78,7 +78,7 @@ void  simpleMinMax (board_s* bp,  int st,  int nd)
 // The "AI" (whatever tha means nowdays!?)
 // Here it means: The computer uses some maths to have an opinion
 //
-// This one looks for obvious wins & loses ...the rating is colour coded!
+// This looks for obvious wins & losses ...the rating is colour coded!
 //
 void  analyse (board_s* bp,  int st,  int nd)
 {
@@ -97,17 +97,21 @@ void  analyse (board_s* bp,  int st,  int nd)
 }
 
 //+============================================================================ =======================================
+// Show move analysis under a move option
+//
 void  oxoAnal (int id,  board_s* bp,  int x)
 {
-	if (bp != g.b) {
+	g.analH = (g.loop == 9) ? 3 : 15 ;  // analysis height
+
+	if (bp != g.b) {  // the empty board is used as "NULL"
 		// The win counter on the branch is/becomes meaningless in looping games - grey it out
 		if ((g.loop != 9) && (g.move >= g.loop -1))  ink(LGRY) ;
 
 		// Show wins on this branch of the tree
-		goyx(g.yOpt+7,x);  printf("%d/%d", bp->wins[0], bp->wins[1]);
-		goyx(g.yOpt+8,x);  printf(" = %d", g.pref[id].amb);  //bp->wins[0] - bp->wins[1]);
+		goyx(g.optY+7,x);  printf("%d/%d", bp->wins[0], bp->wins[1]);
+		goyx(g.optY+8,x);  printf(" = %d", g.pref[id].amb);  //bp->wins[0] - bp->wins[1]);
 
-//		goyx(g.yOpt+9,x);  printf("%d/%d", bp->win, bp->lin);
+//		goyx(g.optY+9,x);  printf("%d/%d", bp->win, bp->lin);
 
 		if (g.loop == 9)                  return ;  // no lookahead required for normal game
 		if (g.pref[id].ink == C_INVALID)  return ;  // nor boards flagged as invalid
@@ -115,7 +119,7 @@ void  oxoAnal (int id,  board_s* bp,  int x)
 		// let's dig 6 moves ahead
 		for (int i = 1;  i <= 6;  i++) {  //! 20
 
-			int yy = g.yOpt +9 +i +(i>=3) +(i>=4) +(i>=5) +(i>=6);  // 2, 3, 4, 5, 6 are have a second line of info
+			int yy = g.optY +9 +i +(i>=3) +(i>=4) +(i>=5) +(i>=6);  // 2, 3, 4, 5, 6 are have a second line of info
 			goyx(yy, x);
 
 			// Winners don't have children!

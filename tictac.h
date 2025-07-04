@@ -147,7 +147,15 @@ typedef
 
 		int      oxoY, oxoX;      // big board y, x
 
-		int      yOpt;            // Y coordinate of options
+		int      optY;            // Y coordinate of options
+
+		int      seqY;            // Y coord for sequence output (first status line)
+
+		int      analH;           // Analysis height
+
+		int      optW;            // Width of an option
+
+		int      mnuY, mnuX;      // coords of menu
 
 		pref_t   pref[10];        // (up to) 9 possible moves + 1 for the game board
 

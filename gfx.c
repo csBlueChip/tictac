@@ -9,7 +9,29 @@
 #include  "conio.h"
 #include  "bot.h"
 
+int  wOpt = 13;  // width of an option
+
+#define OPTX(n)  ( ((n) * g.optW) + 2 )
+
 //+============================================================================ =======================================
+// clear old analysis results
+//
+void  _analClr (int x)
+{
+	for (int y = g.optY +5 +2;  y <= g.optY +5 +g.analH;  y++) {
+		goyx(y,x);
+		printf("           ");
+	}
+}
+
+//+============================================================================
+void  analClr (int x)
+{
+	if (x != -1)  _analClr(x);
+	else          for (int i = 0;  i < 9;  i++)  _analClr(OPTX(i)) ;
+}
+
+//+============================================================================
 // Draw a SMALL oxo grid
 //
 // g.prefs is an array of struct {0..8} are for each board option
@@ -26,35 +48,31 @@ void  oxo (int id,  board_s* bp,  int x)
 
 	if ((g.hide) && (g.pref[id].ink != C_INVALID))  ink(BWHT) ;
 
-	goyx(g.yOpt+0,x+3);  printf("[-%d-]", id);
+	goyx(g.optY+0,x+3);  printf("[-%d-]", id);
 
-	goyx(g.yOpt+1,x  );  printf("   |   |   ");
-	goyx(g.yOpt+2,x  );  printf("---|---|---");
-	goyx(g.yOpt+3,x  );  printf("   |   |   ");
-	goyx(g.yOpt+4,x  );  printf("---|---|---");
-	goyx(g.yOpt+5,x  );  printf("   |   |   ");
+	goyx(g.optY+1,x  );  printf("   |   |   ");
+	goyx(g.optY+2,x  );  printf("---|---|---");
+	goyx(g.optY+3,x  );  printf("   |   |   ");
+	goyx(g.optY+4,x  );  printf("---|---|---");
+	goyx(g.optY+5,x  );  printf("   |   |   ");
 
-	// clear old analysis results
-	for (int yy = g.yOpt +7;  yy <= g.yOpt +20;  yy++) {  //! 20
-		goyx(yy,x);
-		printf("           ");
-	}
+	_analClr(x);
 
 	// optionally display new analysis results
 	if (!g.hide && (id != 9))  oxoAnal(id, bp, x) ;
 
 	// 9 pieces
-	goyx(g.yOpt+1,x+1);  printf(who(bp, POS_TL));
-	goyx(g.yOpt+1,x+5);  printf(who(bp, POS_TC));
-	goyx(g.yOpt+1,x+9);  printf(who(bp, POS_TR));
+	goyx(g.optY+1,x+1);  printf(who(bp, POS_TL));
+	goyx(g.optY+1,x+5);  printf(who(bp, POS_TC));
+	goyx(g.optY+1,x+9);  printf(who(bp, POS_TR));
 
-	goyx(g.yOpt+3,x+1);  printf(who(bp, POS_ML));
-	goyx(g.yOpt+3,x+5);  printf(who(bp, POS_MC));
-	goyx(g.yOpt+3,x+9);  printf(who(bp, POS_MR));
+	goyx(g.optY+3,x+1);  printf(who(bp, POS_ML));
+	goyx(g.optY+3,x+5);  printf(who(bp, POS_MC));
+	goyx(g.optY+3,x+9);  printf(who(bp, POS_MR));
 
-	goyx(g.yOpt+5,x+1);  printf(who(bp, POS_BL));
-	goyx(g.yOpt+5,x+5);  printf(who(bp, POS_BC));
-	goyx(g.yOpt+5,x+9);  printf(who(bp, POS_BR));
+	goyx(g.optY+5,x+1);  printf(who(bp, POS_BL));
+	goyx(g.optY+5,x+5);  printf(who(bp, POS_BC));
+	goyx(g.optY+5,x+9);  printf(who(bp, POS_BR));
 
 	ink(NORM);
 
@@ -264,37 +282,33 @@ bot_e  botChk (void)
 }
 
 //----------------------------------------------------------------------------- ---------------------------------------
-static  int               mnuY       = -1;
-static  int               mnuX       = -1;
-
 static  const char const  menuStr1[] = "[UNDO]  [REDO]  [ANAL]";
                                    //   0123456789012345678901234567890
-                                   //           ` 1  `  `   2`        3
-
-static  const char const  menuStr2[] = "   [RESTART]  [QUIT]";
+                                   //             1         2         3
                                    //   0123456789012345678901234567890
-                                   //             1`  `    `2         3
+static  const char const  menuStr2[] = "   [RESTART]  [QUIT]";
 
 //+============================================================================
-void  menuShow (int y,  int x)
+void  menuShow (void)
 {
-	mnuY = y;
-	mnuX = x;
-
 	ink(BYEL);
-	goyx(y  , x);  printf(menuStr1);
-	goyx(y+2, x);  printf(menuStr2);
+	goyx(g.mnuY  , g.mnuX);  printf(menuStr1);
+	goyx(g.mnuY+2, g.mnuX);  printf(menuStr2);
 
+	// analysis NOT hidden
 	if (!g.hide) {
 		paper(ONRED);
-		goyx(y, x+16);  printf("[ANAL]");
+		goyx(g.mnuY, g.mnuX+16);  printf("[ANAL]");
 
+	// Bot is active
 	} else if (g.bot[g.botID].fn) {
 		ink(DGRY);
-		goyx(y, x);  printf(menuStr1);
+		goyx(g.mnuY, g.mnuX);  printf(menuStr1);
 		ink(BYEL);
+
+		// show HINT button
 		if (g.hint)  paper(ONRED) ;
-		goyx(y, x+16);  printf("[HINT]");
+		goyx(g.mnuY, g.mnuX+16);  printf("[HINT]");
 	}
 
 	fflush(stdout);
@@ -304,24 +318,21 @@ void  menuShow (int y,  int x)
 void  menuClear (void)
 {
 	ink(NORM);
-	goyx(mnuY  , mnuX);  printf("%*s", sizeof(menuStr1)-1, "");
-	goyx(mnuY+2, mnuX);  printf("%*s", sizeof(menuStr2)-1, "");
+	goyx(g.mnuY  , g.mnuX);  printf("%*s", sizeof(menuStr1)-1, "");
+	goyx(g.mnuY+2, g.mnuX);  printf("%*s", sizeof(menuStr2)-1, "");
 	fflush(stdout);
-
-	mnuY = -1;
-	mnuX = -1;
 }
 
 //+============================================================================
 mnuOpt_e  menuChk (int y,  int x)
 {
-	if        (y == mnuY) {
-		if (INRANGE(x, mnuX+ 0, mnuX+ 5))  return MNU_UNDO  ;
-		if (INRANGE(x, mnuX+ 8, mnuX+13))  return MNU_REDO  ;
-		if (INRANGE(x, mnuX+16, mnuX+21))  return MNU_ANAL  ;
-	} else if (y == mnuY+2) {
-		if (INRANGE(x, mnuX+ 3, mnuX+11))  return MNU_AGAIN ;
-		if (INRANGE(x, mnuX+14, mnuX+19))  return MNU_QUIT  ;
+	if        (y == g.mnuY) {
+		if (INRANGE(x, g.mnuX+ 0, g.mnuX+ 5))  return MNU_UNDO  ;
+		if (INRANGE(x, g.mnuX+ 8, g.mnuX+13))  return MNU_REDO  ;
+		if (INRANGE(x, g.mnuX+16, g.mnuX+21))  return MNU_ANAL  ;
+	} else if (y == g.mnuY+2) {
+		if (INRANGE(x, g.mnuX+ 3, g.mnuX+11))  return MNU_AGAIN ;
+		if (INRANGE(x, g.mnuX+14, g.mnuX+19))  return MNU_QUIT  ;
 	}
 	return MNU_NONE;
 }
@@ -357,7 +368,7 @@ int  modeChk (void)
 
 	if (g.my == modeY)
 		for (int i = 5-5;  i <= 9-5;  i++)
-			if ( INRANGE(g.mx, modeX+(i*5), mnuX+(i*5)+3) )  {
+			if ( INRANGE(g.mx, modeX+(i*5), g.mnuX+(i*5)+3) )  {
 				modeShow(modeY, modeX);
 				return i+5 ;
 			}
@@ -406,13 +417,11 @@ void  seqClear (void)
 //+============================================================================ =======================================
 // draw ALL children (even greyed out moves)
 
-int  wOpt = 13;  // width of an option
-
 void  optShow (board_s* bp)
 {
 	int  cidx = 0;
-	while (cidx < bp->cCnt)  oxo(cidx++, bp->chld[cidx], (cidx *wOpt) +2) ;
-	while (cidx < 9       )  oxo(cidx++, &g.b[0],        (cidx *wOpt) +2) ;
+	while (cidx < bp->cCnt)  oxo(cidx++, bp->chld[cidx], OPTX(cidx)) ;
+	while (cidx < 9       )  oxo(cidx++, &g.b[0],        OPTX(cidx)) ;
 }
 
 //+============================================================================
@@ -421,10 +430,10 @@ int   optChk (int* in)
 	int  h = g.hide ? 5 : (g.loop ==9) ? 8 : 18 ;
 
 	// selecting an option?
-	if (INRANGE(g.my, g.yOpt, g.yOpt +h)) {  // y coord for options
-		int x = (g.mx -1) /wOpt;             // selection
+	if (INRANGE(g.my, g.optY, g.optY +h)) {  // y coord for options
+		int x = (g.mx -1) / g.optW;          // selection
 		if (INRANGE(x, 0, 8)) {              // 0..8
-			if ( INRANGE(g.mx, (x*wOpt)+2, (x*wOpt)+wOpt-1) )
+			if ( INRANGE(g.mx, OPTX(x), OPTX(x+1)-1) )
 				return (*in = x + '0');      // fake like we just pressed the number
 		}
 	}
@@ -490,19 +499,19 @@ void  shadow (board_s* bp,  int opt,  int pos)
 
 void box_ (int opt,  char* tl, char* tr, char* bl, char* br, char* h, char* v)
 {
-	int  hh = g.hide ? 5 : (g.loop == 9) ? 8 : 20 ;  //! 20
+	int  hh = 5 + g.analH;
 
-	goyx(g.yOpt-1, (opt*wOpt)+1);
+	goyx(g.optY-1, OPTX(opt)-1);
 	printf(tl);
-	for (int i = 1;  i < wOpt-1;  i++)  printf(h);
+	for (int i = 1;  i < g.optW-1;  i++)  printf(h);
 	printf("%s%s", tr, D);
 
 	for (int i = 0;  i <= hh;  i++)  printf("%s%s", v, D);
-	goyx(g.yOpt, (opt*wOpt)+1);
+	goyx(g.optY, (opt*g.optW)+1);
 	for (int i = 0;  i <= hh;  i++)  printf("%s%s", v, D);
 
 	printf(bl);
-	for (int i = 1;  i < wOpt-1;  i++)  printf(h);
+	for (int i = 1;  i < g.optW-1;  i++)  printf(h);
 	printf(br);
 }
 

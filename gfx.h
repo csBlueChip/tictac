@@ -33,7 +33,7 @@ mnuOpt_e;
 
 //----------------------------------------------------------------------------- ---------------------------------------
 mnuOpt_e  menuChk   (int y,  int x) ;
-void      menuShow  (int y,  int x) ;
+void      menuShow  (void) ;
 void      menuClear (void) ;
 
 void      oxoBig    (board_s* bp) ;
@@ -55,6 +55,8 @@ void      overkill  (board_s* bp) ;
 
 void      botShow   (void) ;
 bot_e     botChk    (void) ;
+
+void      analClr   (int x) ;
 
 #endif //GFX_H_
 

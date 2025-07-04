@@ -97,7 +97,7 @@ int  tictac (void)
 			//----------------------------------------------
 			const char* const  icon1 = (g.move & 1) ? plo[0] : plx[0] ;  // this player
 			const char* const  icon2 = (g.move & 1) ? plx[0] : plo[0] ;  // other player
-			goyx(g.yy+2,0);
+			goyx(g.seqY+2,0);
 			ink(NORM);
 			if      (bp->win)                { MSGF("Player %s WINS!\e[K", icon2);                       over = 1; }
 			else if (bp->cnt == 9)           { MSGF("It's a draw!\e[K");                                 over = 1; }
@@ -124,21 +124,24 @@ int  tictac (void)
 				g.mev = MOUSE_EVENT(in);
 				g.my  = MOUSE_Y(in);
 				g.mx  = MOUSE_X(in);
-//				MSGFYX(g.yy+4,0, "Mouse: %3d @ %3d,%-3d", g.mev, g.my, g.mx);
+//				MSGFYX(g.seqY+4,0, "Mouse: %3d @ %3d,%-3d", g.mev, g.my, g.mx);
 
 				if (g.mev == MEV_POS) {
 					if (!bp->win)  overkill(bp) ;
 
 				} else if ((g.mev == MEV_BTN_L) && MOUSE_ISDOWN(in)) {
+					// -------------------------------------
 					// game mode {5..9}
 					int  m = modeChk();
 					if (m) {
 						if (g.bot[g.botID].loop == -1) {
 							in     = KEY_CTRL_R;
 							g.loop = m;
+							analClr(-1);
 							modeShow(13, 5);  //!
 						}
 
+					// -------------------------------------
 					// bots
 					} else if ((m = botChk()) != BOT_NONE) {
 						// in/out of pvp - restart game
@@ -149,14 +152,16 @@ int  tictac (void)
 							in = KEY_CTRL_R;
 						}
 						botSet(m);
-						menuShow(16, 5);  //!
+						menuShow();
 						modeShow(13, 5);  //!
 						botShow();
 
+					// -------------------------------------
 					// option {0..8}
 					} else if (optChk(&in) >= 0) {
 						(void)NULL;
 
+					// -------------------------------------
 					// option {0..8}
 					} else if ((pos = oxoChk()) >= 0) {
 						for (in = 8;  in >= 0;  in--)
@@ -164,6 +169,7 @@ int  tictac (void)
 							else if (pos == (bp->chld[in]->seq &0xF))  break ;
 						in += '0';
 
+					// -------------------------------------
 					// menu options
 					} else {
 						switch (menuChk(g.my, g.mx)) {
@@ -176,6 +182,7 @@ int  tictac (void)
 						}
 					}
 
+				// right-click : UNDO
 				} else if ((g.mev == MEV_BTN_R) && MOUSE_ISDOWN(in)) {
 					in = KEY_LEFT ;
 				}
@@ -190,7 +197,7 @@ int  tictac (void)
 			} else if (in == KEY_CTRL_H) {                      // ^H hint show/hide
 				if (g.bot[g.botID].fn) {
 					g.hint ^= 1;
-					menuShow(16, 5);  //!
+					menuShow();
 
 					// we draw the master board BEFORE we flipped the parity!
 					g.par ^= (bp->cnt == g.loop);
@@ -202,7 +209,7 @@ int  tictac (void)
 				if (!g.bot[g.botID].fn) {
 					g.hide ^= 1;
 					optShow(bp);
-					menuShow(16, 5);  //!
+					menuShow();
 
 					// we draw the master board BEFORE we flipped the parity!
 					g.par ^= (bp->cnt == g.loop);
@@ -214,7 +221,7 @@ int  tictac (void)
 
 			} else if (in == KEY_CTRL_C) {                      // ^C quit
 				ink(NORM);
-				MSGFYX(g.yy+3,0, "Quit\e[K");
+				MSGFYX(g.seqY+3,0, "Quit\e[K");
 				return 0;
 
 			} else if (in == KEY_CTRL_R) {                      // ^R new game
@@ -235,7 +242,7 @@ int  tictac (void)
 				g.par  ^= (g.move+1 == g.loop);
 
 				bp      = g.play[g.move].bp;
-				seqShow(g.yy, g.move);
+				seqShow(g.seqY, g.move);
 
 				goto continue2;
 			}
@@ -246,7 +253,7 @@ int  tictac (void)
 				in -= '0';                             // convert digit to value
 				if ((in >= st) && (in < nd))  break ;  // valid move?
 				if ((in >= 0 ) && (in <= 8))
-					MSGFYX(g.yy+3,0, "Bad move: %d\e[K", in);
+					MSGFYX(g.seqY+3,0, "Bad move: %d\e[K", in);
 			}
 
 			in = -1;
@@ -260,12 +267,12 @@ redo:
 		bp                  = bp->chld[in];  // board in play
 
 		// Show move sequence
-		seqShow(g.yy, g.move);
+		seqShow(g.seqY, g.move);
 
 		overkill(NULL);
 
 continue2:
-		MSGFYX(g.yy+3,0, "\e[K");  // clear status line
+		MSGFYX(g.seqY+3,0, "\e[K");  // clear status line
 	}//never exits
 
 }
@@ -275,7 +282,7 @@ void  cleanup (void)
 {
 	mouse(MRPT_NONE) ;
 	(void)termRestore(NULL);
-	goyx(g.yy+5,1);
+	goyx(g.seqY+5,1);
 }
 
 //++=========================================================================== =======================================
@@ -285,7 +292,7 @@ int main (int argc,  char* argv[])
 
 	srand(time(NULL));
 
-	printf("# %s %s .. Copyright %s, %s\n", TOOLNAME, VER_STR, AUTHOR, DATE);
+	printf("# %s %s .. Copyright %s, %s\n", TOOLNAMES, VER_STR, AUTHOR, DATE);
 //	printf("# Use: %s [5|6|7|8|9] [-a]\n", argv[0]);
 
 	printf("# Game Keys: ");
@@ -307,8 +314,8 @@ int main (int argc,  char* argv[])
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	memset(&g, 0, sizeof(g));
 
-	g.yOpt = 26;  // y coord for options
-	g.yy   = 48;  // coord for sequence (other stuff below it)
+	g.optY = 26;  // y coord for options
+	g.seqY = 48;  // coord for sequence (other stuff below it)
 
 	g.oxoY = 7;   // main board
 	g.oxoX = 38;  // ...
@@ -316,6 +323,11 @@ int main (int argc,  char* argv[])
 	g.botY = 12;  // bot menu
 	g.botX = 77;  // ...
 	botSetup();
+
+	g.optW = 13;  // Width of an option
+
+	g.mnuY = 16;  // main menu
+	g.mnuX = 5;   // ...
 
 	// game style :
 	//   5 = the 'online' version
@@ -359,7 +371,7 @@ int main (int argc,  char* argv[])
 	printf("# Show analysis: %s\n", g.hide?"No":"Yes");
 
 	modeShow(13, 5);  //!
-	menuShow(16, 5);  //!
+	menuShow();
 	botShow();
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -369,12 +381,12 @@ int main (int argc,  char* argv[])
 	// start keyboard driver (kills itself with atexit())
 	kbdInit();
 
-	(void)termSave(NULL);        // save window size
-	(void)termSet(117, g.yy+3);  // set window size
+	(void)termSave(NULL);          // save window size
+	(void)termSet(117, g.seqY+3);  // set window size
 
-	(void)mouse(MRPT_ALL);       // enable mouse
+	(void)mouse(MRPT_ALL);         // enable mouse
 
-	atexit(cleanup);             // cleanup when the program exits
+	atexit(cleanup);               // cleanup when the program exits
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// run the game
