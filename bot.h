@@ -11,6 +11,7 @@ typedef
 		BOT_JACOB,
 		BOT_JUANIN,
 		BOT_DAVID,
+		BOT_FALKEN,
 
 		BOT_CNT        // must be last
 	}

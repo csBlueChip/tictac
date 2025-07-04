@@ -56,6 +56,10 @@ void  simpleMinMax (board_s* bp,  int st,  int nd)
 	for (int i = st;  i < nd;  i++) {
 		int  ply = (g.move&1)^1;
 		g.pref[i].amb = bp->chld[i]->wins[ply] - bp->chld[i]->wins[ply^1];
+
+		// do not rate moves which are already rated
+		if (g.pref[i].ink != C_FAIR)  continue ;
+
 		if (g.pref[i].amb > ambH)  ambH = g.pref[i].amb ;
 		if (g.pref[i].amb < ambL)  ambL = g.pref[i].amb ;
 	}
@@ -83,8 +87,40 @@ void  simpleMinMax (board_s* bp,  int st,  int nd)
 void  analyse (board_s* bp,  int st,  int nd)
 {
 //	if ((g.loop == 9) || (g.move < g.loop -1)) {
-	if (g.loop == 9) {
-		simpleMinMax(bp, st, nd);
+//	if (g.loop == 9) {
+//		simpleMinMax(bp, st, nd);
+//	}
+
+	// Find Lose-2 moves
+	// Go through each option (i)
+	for (int i = st;  i < nd;  i++) {
+		board_s*  bp2 = bp->chld[i];
+		if (bp2->win)  continue ;
+		int       st2 = (bp2->cnt == g.loop) ? (9 - bp2->cnt) : 0 ;
+		int       nd2 = (bp2->cnt != g.loop) ? (9 - bp2->cnt) : bp2->cCnt ;
+
+		// go through each option for each child
+		// we are now essentially playing the next OPPONENT move
+		for (int j = st2;  j < nd2;  j++) {
+			board_s*  bp3 = bp2->chld[j];
+			if (bp3->win)  continue ;
+			int       st3 = (bp3->cnt == g.loop) ? (9 - bp3->cnt) : 0 ;
+			int       nd3 = (bp3->cnt != g.loop) ? (9 - bp3->cnt) : bp3->cCnt ;
+
+			// go through each of your possible NEXT moves
+			// for each of these:
+			//   are there as many losing moves as there are there are remaining moves?
+			// if so, this path offers your opponent a move such that
+			//   you are guarunteed to lose ...IF they choose to take it
+			// to be safe, we will flag this (current move) option [i] as a LOSE2
+			int  l = 0;
+			for (int k = st3;  k < nd3;  k++)
+				l += !!bp3->chld[k]->lose[((g.move +2) >= g.loop)];  //! [0:normal, 1:looping]
+			if (l == nd3-st3) {
+				g.pref[i].ink = C_LOSE2;
+				break;  // we are done with this (current move) option [i]
+			}
+		}
 	}
 
 	// Spot obvious wins & loses
@@ -94,6 +130,12 @@ void  analyse (board_s* bp,  int st,  int nd)
 		else if (bp->chld[i]->lose[(g.move>=g.loop)])          g.pref[i].ink = C_LOSE ;  // Lose after this move
 		else if (lookahead(bp->chld[i], 2)[0] == 9 - bp->cnt)  g.pref[i].ink = C_WIN2 ;  // Win next move
 	}
+
+	if (g.loop == 9) {
+		simpleMinMax(bp, st, nd);
+	}
+
+
 }
 
 //+============================================================================ =======================================
@@ -101,7 +143,8 @@ void  analyse (board_s* bp,  int st,  int nd)
 //
 void  oxoAnal (int id,  board_s* bp,  int x)
 {
-	g.analH = (g.loop == 9) ? 3 : 15 ;  // analysis height
+//9	g.analH = (g.loop == 9) ? 3 : 15 ;  // analysis height
+	g.analH = 15 ;  // analysis height
 
 	if (bp != g.b) {  // the empty board is used as "NULL"
 		// The win counter on the branch is/becomes meaningless in looping games - grey it out
@@ -113,7 +156,7 @@ void  oxoAnal (int id,  board_s* bp,  int x)
 
 //		goyx(g.optY+9,x);  printf("%d/%d", bp->win, bp->lin);
 
-		if (g.loop == 9)                  return ;  // no lookahead required for normal game
+//9		if (g.loop == 9)                  return ;  // no lookahead required for normal game
 		if (g.pref[id].ink == C_INVALID)  return ;  // nor boards flagged as invalid
 
 		// let's dig 6 moves ahead
@@ -134,5 +177,4 @@ void  oxoAnal (int id,  board_s* bp,  int x)
 			}
 		}
 	}
-
 }

@@ -62,6 +62,7 @@ void  oxo (int id,  board_s* bp,  int x)
 
 	// optionally display new analysis results
 	if (!g.hide && (id != 9))  oxoAnal(id, bp, x) ;
+//	if (!g.hide             )  oxoAnal(id, bp, x) ;
 
 	// 9 pieces
 	goyx(g.optY+1,x+1);  printf(who(bp, POS_TL));
@@ -412,6 +413,7 @@ void  seqShow (int cnt)
 //
 void  seqClear (void)
 {
+	ink(NORM);
 	MSGFYX(g.seqY,1, "\e[K");
 }
 
@@ -430,7 +432,8 @@ void  optShow (board_s* bp)
 //
 int   optChk (int* in)
 {
-	int  h = g.hide ? 5 : (g.loop ==9) ? 8 : 18 ;
+//9	int  h = g.hide ? 5 : (g.loop ==9) ? 8 : 18 ;
+	int  h = g.hide ? 5 : g.analH +3 ;
 
 	// selecting an option?
 	if (INRANGE(g.my, g.optY, g.optY +h)) {  // y coord for options

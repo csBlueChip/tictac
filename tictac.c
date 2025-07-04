@@ -320,7 +320,7 @@ int main (int argc,  char* argv[])
 	g.oxoY = 7;    // main board
 	g.oxoX = 38;   // ...
 
-	g.botY = 12;   // bot menu
+	g.botY = 11;   // bot menu
 	g.botX = 77;   // ...
 	botSetup();
 
