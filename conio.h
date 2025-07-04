@@ -52,7 +52,7 @@ typedef
 		// ...I also considered 64 bit values, but I do a lot of microcontroller work - so: No.
 		// Hence: Any screen coordinate > 255 will wrap/overflow (ie. 255+1 == 0)
 		//
-		// Mouse events are reported as keystrokes (becasue they are!!)  .. NB. "CSI" --> \e[
+		// Mouse events are reported as keystrokes (because they are!!)  .. NB. "CSI" --> \e[
 		//     CSI < event ; column ; row {m|M}  ...  CSI -> \e[  ...  {'m'=Button-Up, 'M'=Everything else}
 		//
 		// See below for some useful MACROs

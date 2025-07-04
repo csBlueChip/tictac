@@ -5,9 +5,11 @@
 #include  "gfx.h"
 
 //----------------------------------------------------------------------------- ---------------------------------------
+// the stack doesn't need to be any bigger
+//
 static  int  laWin[2] = {0};  // {0=player-A, 1=player-B}
 
-//+============================================================================ =======================================
+//+============================================================================
 // Look ahead a maximum of 'depth' moves and tally all the odd and even wins
 //
 static
@@ -76,6 +78,8 @@ void  simpleMinMax (board_s* bp,  int st,  int nd)
 // The "AI" (whatever tha means nowdays!?)
 // Here it means: The computer uses some maths to have an opinion
 //
+// This one looks for obvious wins & loses ...the rating is colour coded!
+//
 void  analyse (board_s* bp,  int st,  int nd)
 {
 //	if ((g.loop == 9) || (g.move < g.loop -1)) {
@@ -96,7 +100,10 @@ void  analyse (board_s* bp,  int st,  int nd)
 void  oxoAnal (int id,  board_s* bp,  int x)
 {
 	if (bp != g.b) {
-		if ((g.loop != 9) && (g.move >= g.loop -1))  ink(LGRY) ; //!!!
+		// The win counter on the branch is/becomes meaningless in looping games - grey it out
+		if ((g.loop != 9) && (g.move >= g.loop -1))  ink(LGRY) ;
+
+		// Show wins on this branch of the tree
 		goyx(g.yOpt+7,x);  printf("%d/%d", bp->wins[0], bp->wins[1]);
 		goyx(g.yOpt+8,x);  printf(" = %d", g.pref[id].amb);  //bp->wins[0] - bp->wins[1]);
 

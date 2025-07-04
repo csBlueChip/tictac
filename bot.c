@@ -33,6 +33,8 @@ void  botSet (bot_e id)
 }
 
 //+============================================================================
+// can only play a normal game - will never lose
+//
 int  bot_jacob (int* in,  int st,  int nd)
 {
 	int  pick[9] = {0};
@@ -41,7 +43,7 @@ int  bot_jacob (int* in,  int st,  int nd)
 
 	int  str[5]  = {C_WIN, C_STRONG, C_FAIR, C_WEAK, C_LOSE};  // strength
 
-	if (g.move > 9)  return key ;
+	if (g.move > 9)  return -1 ;
 
 	for (int s = 0;  (s < ARRCNT(str)) && !pcnt;  s++)
 		for (int i = st;  i < nd;  i++)
@@ -53,6 +55,8 @@ int  bot_jacob (int* in,  int st,  int nd)
 }
 
 //+============================================================================
+// considers immediate wins & loses, but otherwise plays randomly
+//
 int  bot_juanin (int* in,  int st,  int nd)
 {
 	int  pick[9] = {0};
@@ -76,12 +80,42 @@ int  bot_juanin (int* in,  int st,  int nd)
 }
 
 //+============================================================================
+// Like Juanin, but also considers wins 1-move ahead
+//
+int  bot_david (int* in,  int st,  int nd)
+{
+	int  pick[9] = {0};
+	int  pcnt    = 0;
+
+	if ((g.loop == 9) && (g.move > 9))  return -1 ;
+
+	// dont miss the chance to win
+	for (int i = st;  i < nd;  i++)
+		if (g.pref[i].ink == C_WIN)  return (*in = i +'0') ;
+
+	// dont miss the chance to win NEXT time around
+	for (int i = st;  i < nd;  i++)
+		if (g.pref[i].ink == C_WIN2)  return (*in = i +'0') ;
+
+	// dont lose (if you can avoid it)
+	for (int i = st;  i < nd;  i++)
+		if (g.pref[i].ink != C_LOSE)  pick[pcnt++] = i ;
+
+	// all losers?  random:-
+	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
+
+	// pick something that doesn't lose
+	return  (*in = pick[rand()%pcnt] +'0') ;
+}
+
+//+============================================================================
 void  botSetup (void)
 {
-	g.bot[BOT_NONE]  = (bot_s){.fn=NULL      , .name=" ---  ",  .loop= 0};
-	g.bot[BOT_PVP]   = (bot_s){.fn=NULL      , .name=" PvP  ",  .loop=-1};
-	g.bot[BOT_JACOB] = (bot_s){.fn=bot_jacob , .name="Jacob ",  .loop= 9};
-	g.bot[BOT_DAVID] = (bot_s){.fn=bot_juanin, .name="Juanin",  .loop=-1};
+	g.bot[BOT_NONE]   = (bot_s){.fn=NULL      , .name=" ---  ",  .loop= 0};
+	g.bot[BOT_PVP]    = (bot_s){.fn=NULL      , .name=" PvP  ",  .loop=-1};
+	g.bot[BOT_JACOB]  = (bot_s){.fn=bot_jacob , .name="Jacob ",  .loop= 9};
+	g.bot[BOT_JUANIN] = (bot_s){.fn=bot_juanin, .name="Juanin",  .loop=-1};
+	g.bot[BOT_DAVID]  = (bot_s){.fn=bot_david , .name="David ",  .loop=-1};
 
 	g.botID = BOT_PVP;
 }

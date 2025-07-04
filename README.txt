@@ -33,6 +33,11 @@ tictac.c - the game
 	main   - setup stuff
 	tictac - main game loop
 
+bot.c - bots
+	jacob  - normal game, can't lose
+	juanin - any game, considers win/lose/random
+	david  - any game, considers win/win2/lose/random
+
 ------------------------------------------------------------------------------- ---------------------------------------
 Normal rules:
 	There are 986,410 sequences which end with all 9 squares filled  (incl. empty-board)

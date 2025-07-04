@@ -9,10 +9,12 @@
 #include  "conio.h"
 #include  "bot.h"
 
-//+============================================================================
+//+============================================================================ =======================================
+// Draw a SMALL oxo grid
+//
 // g.prefs is an array of struct {0..8} are for each board option
-//                               {9}    is the game board (no longer used)
-// it is the result of the AI analysis
+//                               {9}    is the game board [no longer used]
+// it is the result of the Bot analysis
 //
 // assuming analysis results are not hidden:
 //  this function will use .ink to choose the colour of the grid
@@ -32,13 +34,13 @@ void  oxo (int id,  board_s* bp,  int x)
 	goyx(g.yOpt+4,x  );  printf("---|---|---");
 	goyx(g.yOpt+5,x  );  printf("   |   |   ");
 
-	// clear analysis results
+	// clear old analysis results
 	for (int yy = g.yOpt +7;  yy <= g.yOpt +20;  yy++) {  //! 20
 		goyx(yy,x);
 		printf("           ");
 	}
 
-	// optionally display new results
+	// optionally display new analysis results
 	if (!g.hide && (id != 9))  oxoAnal(id, bp, x) ;
 
 	// 9 pieces
@@ -60,6 +62,8 @@ void  oxo (int id,  board_s* bp,  int x)
 }
 
 //+============================================================================ =======================================
+// Draw the BIG grid
+//
 // This comment will stop `grep` from working! (cos unicode)
 //
 //	  ▄   ▄  ║   ▄▄▄   ║
@@ -108,12 +112,12 @@ void  _grid (int y,  int x)
 }
 
 //-----------------------------------------------------------------------------
-#	define  U  "\u2580"
-#	define  D  "\u2584"
-#	define  L  "\u258C"
-#	define  R  "\u2590"
-#	define  F  "\u2588"
-#	define  N  " "
+#	define  U  "\u2580"  // Up (top half)
+#	define  D  "\u2584"  // Down
+#	define  L  "\u258C"  // Left
+#	define  R  "\u2590"  // Right
+#	define  F  "\u2588"  // Full
+#	define  N  " "       // None
 
 static  const char* const  icon[2][4][5] = {
 	{	{ N D D D N,  F N N N F,  L N N N R,  F N N N F,  N U U U N },  // O : Big
@@ -143,6 +147,8 @@ static  int  iconClr[2][5] = {
 #	undef  N
 
 //+============================================================================
+// Draw BIG piece
+//
 static
 void  _piece (int y,  int x,  board_s* bp,  int pos)
 {
@@ -180,6 +186,30 @@ void  _piece (int y,  int x,  board_s* bp,  int pos)
 }
 
 //+============================================================================
+// Draw BIG board
+//
+void  oxoBig (board_s* bp)
+{
+	_grid(g.oxoY, g.oxoX);
+
+	_piece(g.oxoY+ 0, g.oxoX+ 2, bp, POS_TL);
+	_piece(g.oxoY+ 0, g.oxoX+12, bp, POS_TC);
+	_piece(g.oxoY+ 0, g.oxoX+22, bp, POS_TR);
+
+	_piece(g.oxoY+ 6, g.oxoX+ 2, bp, POS_ML);
+	_piece(g.oxoY+ 6, g.oxoX+12, bp, POS_MC);
+	_piece(g.oxoY+ 6, g.oxoX+22, bp, POS_MR);
+
+	_piece(g.oxoY+12, g.oxoX+ 2, bp, POS_BL);
+	_piece(g.oxoY+12, g.oxoX+12, bp, POS_BC);
+	_piece(g.oxoY+12, g.oxoX+22, bp, POS_BR);
+
+	fflush(stdout);
+}
+
+//+============================================================================
+// Are mouse coordinates over a grid position?
+//
 int  oxoChk (void)
 {
 	if        (INRANGE(g.my, g.oxoY+ 0, g.oxoY+ 4)) {                   // top
@@ -200,31 +230,15 @@ int  oxoChk (void)
 	return -1;
 }
 
-//+============================================================================
-void  oxoBig (board_s* bp)
-{
-	_grid(g.oxoY, g.oxoX);
-
-	_piece(g.oxoY+ 0, g.oxoX+ 2, bp, POS_TL);
-	_piece(g.oxoY+ 0, g.oxoX+12, bp, POS_TC);
-	_piece(g.oxoY+ 0, g.oxoX+22, bp, POS_TR);
-
-	_piece(g.oxoY+ 6, g.oxoX+ 2, bp, POS_ML);
-	_piece(g.oxoY+ 6, g.oxoX+12, bp, POS_MC);
-	_piece(g.oxoY+ 6, g.oxoX+22, bp, POS_MR);
-
-	_piece(g.oxoY+12, g.oxoX+ 2, bp, POS_BL);
-	_piece(g.oxoY+12, g.oxoX+12, bp, POS_BC);
-	_piece(g.oxoY+12, g.oxoX+22, bp, POS_BR);
-
-	fflush(stdout);
-}
-
 //+============================================================================ =======================================
+// Show Bot Menu
+//
+#define  BOTY(i)  (g.botY +(((i)-1)*2))
+
 void  botShow (void)
 {
 	for (int i = 1;  i < BOT_CNT;  i++) {
-		goyx(g.botY +((i-1)*2), g.botX);
+		goyx(BOTY(i), g.botX);
 		ink(BYEL);
 		if (i == g.botID) {
 			paper(ONRED);
@@ -238,13 +252,14 @@ void  botShow (void)
 }
 
 //+============================================================================
+// Are mouse coordinates over a bot name
+//
 bot_e  botChk (void)
 {
 	if (!INRANGE(g.mx, g.botX, g.botX+10))  return BOT_NONE ;
 
 	int i;
-	for (i = BOT_CNT -1;  i > 0;  i--)
-		if ( g.my == g.botY +((i-1)*2) )  break ;
+	for (i = BOT_CNT -1;  i > 0 && (g.my != BOTY(i));  i--) ;
 	return i;
 }
 
@@ -465,7 +480,7 @@ void  shadow (board_s* bp,  int opt,  int pos)
 }
 
 //+============================================================================
-#define  TL  "\u250C"
+#define  TL  "\u250C"   // box characters (single line)
 #define  TR  "\u2510"
 #define  BL  "\u2514"
 #define  BR  "\u2518"
@@ -527,8 +542,6 @@ void  overkill (board_s* bp)
 		goto done;
 	}
 
-//	goyx(g.yy+4,24);  printf("\e[K");
-
 	if ((opt = optChk(&in)) >= 0) {
 		opt -= '0';
 		if (g.pref[opt].ink != C_INVALID)  pos = bp->chld[opt]->seq &0xF ;
@@ -542,8 +555,6 @@ void  overkill (board_s* bp)
 
 	shadow(bp, opt, pos);
 	box(opt);
-
-//	goyx(g.yy+4, 24);  printf("opt=%d -> pos=%d", opt, pos);
 
 done:
 	goyx(g.my, g.mx);

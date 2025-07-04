@@ -36,7 +36,7 @@ static  const int  winl[WIN_CNT][4] = {
 
 //+============================================================================ =======================================
 // Check if this board has a winning line on it - return the winner ID {0:none, 1:A, 2:B}
-// ...If it has, recusrively ripple the win count back up the tree
+// ...If it wins, recusrively ripple the win count back up the tree
 //
 // This is only used during board generation ... DO NOT call `win()` again on a board
 // During game play check `bp->win`
@@ -82,7 +82,8 @@ int  win (board_s* bp)
 }
 
 //+============================================================================ =======================================
-// Build every board as far as "max" moves
+// Build every board as far as "g.max" moves
+// the idea of stopping early (before 9) is vestigial - but it could well become useful again
 //
 static
 void  build_ (board_s* prnt)
@@ -107,19 +108,10 @@ void  build_ (board_s* prnt)
 		// place next piece
 		bp->occ |= (((++bp->cnt) & 1) ? 0x1 : 0x2) << (pos *2);
 		bp->seq  = (bp->seq << 4) | pos;
-/*
-		// We do not need to track any state after a win
-		int  w = isWin(bp);
-		if (w >= 0) {
-			bp->lin           = winl[i][0];  // store id of winning line
-			bp->prnt->lose[0] = 1;           // parent is (must be) a loser
-			ripple_(bp->prnt, bp->win -1);   // recursively ripple the win up to the root
-			continue ;  //!  ((comment out this line to build EVERY board))
-		}
-*/
+
 		if (win(bp)) {
 			bp->prnt->lose[0] = 1;
-			continue ;  //!  ((comment out this line to build EVERY board))
+			continue ;  //!  ((comment out this line to build every possible 3x3 board))
 		}
 
 		build_(bp);  // recurse
@@ -135,6 +127,8 @@ void  build_ (board_s* prnt)
 // 6 = SIX  pieces may be visible when considering a move [ https://www.amazon.co.uk/dp/B0DNLYSN7J ]
 // 5 = FIVE pieces may be visible when considering a move [ https://xogone.com/ ]
 //     ...at ths time loop5() has not been written!
+//
+// The idea of stopping early (before 9) is vestigial - but it could well become useful again
 //
 int  build (int max)
 {
@@ -154,9 +148,9 @@ int  loopat (int loop)
 	seq_t  mask = ((seq_t)0x1 <<(loop*4)) -1;  // mask for 'loop' moves
 
 	// read the comments in `struct board_s`
-	if ((loop <= 4) || (loop >= 9))  return -1 ;  //exit(101) ;
+	if ((loop <= 4) || (loop >= 9))  return -1 ;//exit(101) ;
 
-	(void)findseq(0, 0);  // reset search
+	(void)findseq(0, 0);  // reset search index
 
 	for (int i = 0;  i < g.bn;  i++) {
 		board_s*  bp = &g.b[i];
@@ -164,11 +158,11 @@ int  loopat (int loop)
 		if (bp->cnt != loop)  continue ;  // Only process move-N boards
 		if (bp->win)          continue ;  // winners do not have children
 
-		//  6666'5555'4444'3333'2222'1111  ->  5555'4444'3333'2222'1111'xxxx
-		//       5555'4444'3333'2222'1111  ->       4444'3333'2222'1111'xxxx
+		// eg.  6666'5555'4444'3333'2222'1111  ->  5555'4444'3333'2222'1111'xxxx
+		//           5555'4444'3333'2222'1111  ->       4444'3333'2222'1111'xxxx
 		seek = (bp->seq <<4) & mask;
 
-		// find the three matching 6-move boards
+		// find the loop target-boards
 		for (int pos = 0;  pos < 9;  pos++) {
 			if (occupier(bp, pos))  continue ;               // ignore 'loop' out of 9 moves
 			bp->chld[bp->cCnt] = findseq(seek | pos, loop);  // find the loop board

@@ -19,7 +19,6 @@
 	goyx(g.my, g.mx);              \
 	fflush(stdout);                \
 }while(0)
-//	if (g.mouse)  goyx(g.my, g.mx) ;  \
 
 #define  MSGFYX(y,x,...)  do {  goyx(y,x); MSGF(__VA_ARGS__);  }while(0)
 

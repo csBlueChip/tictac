@@ -17,7 +17,6 @@
 #include  "version.h"
 #include  "bot.h"
 
-#define  NDEBUG
 #include  "debug.h"
 
 #include  <time.h>
@@ -314,7 +313,7 @@ int main (int argc,  char* argv[])
 	g.oxoY = 7;   // main board
 	g.oxoX = 38;  // ...
 
-	g.botY = 13;  // bot menu
+	g.botY = 12;  // bot menu
 	g.botX = 77;  // ...
 	botSetup();
 

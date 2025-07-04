@@ -1,7 +1,6 @@
 #ifndef  DEBUG_H_
 #define  DEBUG_H_
 
-//#define  NDEBUG
 #include  <assert.h>
 
 #ifdef  NDEBUG
