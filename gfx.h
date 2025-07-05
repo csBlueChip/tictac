@@ -56,6 +56,9 @@ void      overkill  (board_s* bp) ;
 void      botShow   (void) ;
 bot_e     botChk    (void) ;
 
+void      plmShow   (void) ;
+int       plmChk    (int* in) ;
+
 void      analClr   (int x) ;
 
 #endif //GFX_H_

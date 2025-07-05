@@ -147,6 +147,7 @@ typedef
 		int      oxoY, oxoX;      // big board y, x
 		int      modeY, modeX;    // coords of game mode menu {6..9}
 		int      mnuY, mnuX;      // coords of menu
+		int      plmY, plmX;      // coords of player menu
 		int      optY, optW;      // Y coordinate & Width of options
 		int      analH;           // Analysis height
 		int      seqY;            // Y coord for sequence output (first status line)
@@ -155,6 +156,8 @@ typedef
 		bot_e    botID;           // active bot
 		bot_s    bot[BOT_CNT];    // bot details
 		int      hint;            // hint mode active [qv. menu]
+
+		int      botT;            // 0='O', 1='X'
 	}
 global_s;
 

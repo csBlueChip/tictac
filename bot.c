@@ -89,24 +89,32 @@ int  bot_david (int* in,  int st,  int nd)
 //
 int  bot_falken (int* in,  int st,  int nd)
 {
-	int  pick[9] = {0};
-	int  pcnt    = 0;
+	int  pick[9]  = {0};
+	int  pcnt     = 0;
 
 	if ((g.loop == 9) && (g.move > 9))  return -1 ;
 
-	// dont miss the chance to win
+	// dont miss the chance to win now
 	for (int i = st;  i < nd;  i++)
 		if (g.pref[i].ink == C_WIN)  return (*in = i +'0') ;
+
+	// eschew all losers
+	for (int i = st;  i < nd;  i++)
+		if (g.pref[i].ink != C_LOSE)  pick[pcnt++] = i ;
+
+	// all losers?  random:-
+	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
 
 	// dont miss the chance to win NEXT time around
 	for (int i = st;  i < nd;  i++)
 		if (g.pref[i].ink == C_WIN2)  return (*in = i +'0') ;
 
-	// dont lose (if you can avoid it)
+	// eschew all lose-2 options
+	pcnt = 0;
 	for (int i = st;  i < nd;  i++)
-		if ((g.pref[i].ink != C_LOSE) || (g.pref[i].ink != C_LOSE2))  pick[pcnt++] = i ;
+		if ((g.pref[i].ink != C_LOSE) && (g.pref[i].ink != C_LOSE2))  pick[pcnt++] = i ;
 
-	// all losers?  random:-
+	// all lose-2?  random:-
 	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
 
 	// pick something that doesn't lose

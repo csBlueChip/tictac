@@ -418,6 +418,41 @@ void  seqClear (void)
 }
 
 //+============================================================================ =======================================
+// draw player menu
+//
+void  plmShow (void)
+{
+	goyx(g.plmY, g.plmX);
+
+	ink(BCYN);
+	printf("Bot Token : ");
+
+	if (g.botT == 0) {
+		ink(BYEL);  paper(PAPER(C_RED));  printf("[O]");
+		ink(BYEL);                        printf("  [X]");
+
+	} else {
+		ink(BYEL);            printf("[O]  ");
+		paper(PAPER(C_RED));  printf("[X]");
+	}
+}
+
+// Bot Token : [O] [X]
+// 0123456789012345678
+
+//+============================================================================
+// is the mouse over the player swap button ?
+//
+int   plmChk (int* in)
+{
+	if (g.my != g.plmY)  return -1 ;
+	if (INRANGE(g.mx, g.plmX+12, g.plmX+14))  return (*in = 'o') ;
+	if (INRANGE(g.mx, g.plmX+17, g.plmX+19))  return (*in = 'x') ;
+	if (INRANGE(g.mx, g.plmX   , g.plmX+19))  return (*in = 'p') ;
+	return -1 ;
+}
+
+//+============================================================================ =======================================
 // draw ALL children (even greyed out moves)
 //
 void  optShow (board_s* bp)

@@ -74,7 +74,11 @@ int  tictac (void)
 
 		if (!bp->win) {  // Winners don't have children
 			analyse(bp, st, nd);
-			if (!(g.move & 1) && g.bot[g.botID].fn)  (void)g.bot[g.botID].fn(&in, st, nd) ;
+
+swapSides:
+			// Bot to move...
+			if ((!(g.move & 1) ^ !g.botT) && g.bot[g.botID].fn)
+				(void)g.bot[g.botID].fn(&in, st, nd);
 		}
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -157,12 +161,17 @@ int  tictac (void)
 						botShow();
 
 					// -------------------------------------
-					// option {0..8}
+					// bot player
+					} else if (plmChk(&in) >= 0) {
+						(void)NULL;
+
+					// -------------------------------------
+					// option {0..8} - by options
 					} else if (optChk(&in) >= 0) {
 						(void)NULL;
 
 					// -------------------------------------
-					// option {0..8}
+					// option {0..8} - by grid position
 					} else if ((pos = oxoChk()) >= 0) {
 						for (in = 8;  in >= 0;  in--)
 							if (g.pref[in].ink == C_INVALID)           continue ;
@@ -215,8 +224,6 @@ int  tictac (void)
 					g.par ^= (bp->cnt == g.loop);
 					oxoBig(bp);  // Draw the main board
 					g.par ^= (bp->cnt == g.loop);
-
-//					continue;
 				}
 
 			} else if (in == KEY_CTRL_C) {                      // ^C quit
@@ -227,6 +234,21 @@ int  tictac (void)
 			} else if (in == KEY_CTRL_R) {                      // ^R new game
 				seqClear();
 				return 1;    // trigger reentry to tictac()
+
+			} else if ((in|0x20) == 'x') {                         // Bot is : X
+				g.botT = 1;
+				plmShow();
+				if (!over)  goto swapSides;
+
+			} else if ((in|0x20) == 'o') {                         // Bot is : O
+				g.botT = 0;
+				plmShow();
+				if (!over)  goto swapSides;
+
+			} else if ((in|0x20) == 'p') {                         // Toggle Bot player
+				g.botT = !g.botT;
+				plmShow();
+				if (!over)  goto swapSides;
 
 			} else if (in == KEY_RIGHT) {                       // -> redo
 				if (g.last >= g.move) {
@@ -323,6 +345,10 @@ int main (int argc,  char* argv[])
 	g.botY = 11;   // bot menu
 	g.botX = 77;   // ...
 	botSetup();
+	g.botT = 1;    // Play as X
+
+	g.plmY = 21;   // player menu
+	g.plmX = 6;    // ...
 
 	g.optW = 13;   // Width of an option
 
@@ -376,6 +402,7 @@ int main (int argc,  char* argv[])
 	modeShow();
 	menuShow();
 	botShow();
+	plmShow();
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// Configure everything
