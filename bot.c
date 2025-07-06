@@ -73,7 +73,13 @@ int  bot_david (int* in,  int st,  int nd)
 	for (int i = st;  i < nd;  i++)
 		if (g.pref[i].ink == C_WIN2)  return (*in = i +'0') ;
 
+	// pick a "strong" move
+	for (int i = st;  i < nd;  i++)
+		if (g.pref[i].ink == C_STRONG)  pick[pcnt++] = i ;
+	if (pcnt)  return (*in = pick[rand()%pcnt] +'0') ;
+
 	// dont lose (if you can avoid it)
+	pcnt = 0;
 	for (int i = st;  i < nd;  i++)
 		if (g.pref[i].ink != C_LOSE)  pick[pcnt++] = i ;
 
@@ -85,9 +91,9 @@ int  bot_david (int* in,  int st,  int nd)
 }
 
 //+============================================================================
-// FALKEN : David + consider LOSE2 < FAIR
+// WATSON : David + consider LOSE2 < FAIR
 //
-int  bot_falken (int* in,  int st,  int nd)
+int  bot_watson (int* in,  int st,  int nd)
 {
 	int  pick[9]  = {0};
 	int  pcnt     = 0;
@@ -95,26 +101,37 @@ int  bot_falken (int* in,  int st,  int nd)
 	if ((g.loop == 9) && (g.move > 9))  return -1 ;
 
 	// dont miss the chance to win now
+	pcnt = 0;
 	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink == C_WIN)  return (*in = i +'0') ;
+		if (g.pref[i].ink == C_WIN)  pick[pcnt++] = i ;
+	if (pcnt)  return (*in = pick[rand()%pcnt] +'0') ;
+
+//.	for (int i = st;  i < nd;  i++)
+//.		if (g.pref[i].ink == C_WIN)  return (*in = i +'0') ;
+
+	// dont miss the chance to win NEXT time around
+	pcnt = 0;
+	for (int i = st;  i < nd;  i++)
+		if (g.pref[i].ink == C_WIN2)  pick[pcnt++] = i ;
+	if (pcnt)  return (*in = pick[rand()%pcnt] +'0') ;
 
 	// eschew all losers
 	for (int i = st;  i < nd;  i++)
 		if (g.pref[i].ink != C_LOSE)  pick[pcnt++] = i ;
-
-	// all losers?  random:-
+	// all losers?  ...Lose in a random way
 	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
 
-	// dont miss the chance to win NEXT time around
+	// pick a "strong" move
+	pcnt = 0;
 	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink == C_WIN2)  return (*in = i +'0') ;
+		if (g.pref[i].ink == C_STRONG)  pick[pcnt++] = i ;
+	if (pcnt)  return (*in = pick[rand()%pcnt] +'0') ;
 
-	// eschew all lose-2 options
+	// eschew all (lose &) lose_2 options
 	pcnt = 0;
 	for (int i = st;  i < nd;  i++)
 		if ((g.pref[i].ink != C_LOSE) && (g.pref[i].ink != C_LOSE2))  pick[pcnt++] = i ;
-
-	// all lose-2?  random:-
+	// all losers?  ...Lose in a random way
 	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
 
 	// pick something that doesn't lose
@@ -128,7 +145,7 @@ void  botSet (bot_e id)
 {
 	static  int  prevHide = 1;
 
-//	if (id == BOT_NONE)  return ;
+//.	if (id == BOT_NONE)  return ;
 
 	if (g.bot[id].fn) {  // isBot
 		if (!g.bot[g.botID].fn) {  // wasPVP
@@ -160,7 +177,7 @@ void  botSetup (void)
 	g.bot[BOT_JACOB]  = (bot_s){.fn=bot_jacob , .name="Jacob ",  .loop= 9};
 	g.bot[BOT_JUANIN] = (bot_s){.fn=bot_juanin, .name="Juanin",  .loop=-1};
 	g.bot[BOT_DAVID]  = (bot_s){.fn=bot_david , .name="David ",  .loop=-1};
-	g.bot[BOT_FALKEN] = (bot_s){.fn=bot_falken, .name="Falken",  .loop=-1};
+	g.bot[BOT_WATSON] = (bot_s){.fn=bot_watson, .name="Watson",  .loop=-1};
 
 	g.botID = BOT_PVP;
 }

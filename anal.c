@@ -57,7 +57,7 @@ void  simpleMinMax (board_s* bp,  int st,  int nd)
 		int  ply = (g.move&1)^1;
 		g.pref[i].amb = bp->chld[i]->wins[ply] - bp->chld[i]->wins[ply^1];
 
-		// do not rate moves which are already rated
+		// do not (re-)rate moves which are already rated
 		if (g.pref[i].ink != C_FAIR)  continue ;
 
 		if (g.pref[i].amb > ambH)  ambH = g.pref[i].amb ;
@@ -86,10 +86,7 @@ void  simpleMinMax (board_s* bp,  int st,  int nd)
 //
 void  analyse (board_s* bp,  int st,  int nd)
 {
-//	if ((g.loop == 9) || (g.move < g.loop -1)) {
-//	if (g.loop == 9) {
-//		simpleMinMax(bp, st, nd);
-//	}
+	for (int i = st;  i < nd;  i++)  g.pref[i].ink = C_FAIR ;
 
 	// Find Lose-2 moves
 	// Go through each option (i)
@@ -131,11 +128,8 @@ void  analyse (board_s* bp,  int st,  int nd)
 		else if (lookahead(bp->chld[i], 2)[0] == 9 - bp->cnt)  g.pref[i].ink = C_WIN2 ;  // Win next move
 	}
 
-	if (g.loop == 9) {
-		simpleMinMax(bp, st, nd);
-	}
-
-
+	// Do a min/max on the remaining "fair" items
+	simpleMinMax(bp, st, nd);
 }
 
 //+============================================================================ =======================================
@@ -154,7 +148,7 @@ void  oxoAnal (int id,  board_s* bp,  int x)
 		goyx(g.optY+7,x);  printf("%d/%d", bp->wins[0], bp->wins[1]);
 		goyx(g.optY+8,x);  printf(" = %d", g.pref[id].amb);  //bp->wins[0] - bp->wins[1]);
 
-//		goyx(g.optY+9,x);  printf("%d/%d", bp->win, bp->lin);
+//-		goyx(g.optY+9,x);  printf("%d/%d", bp->win, bp->lin);
 
 //9		if (g.loop == 9)                  return ;  // no lookahead required for normal game
 		if (g.pref[id].ink == C_INVALID)  return ;  // nor boards flagged as invalid

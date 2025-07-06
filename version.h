@@ -4,12 +4,13 @@
 // 0.7.0 - first release .. AI incomplete
 // 0.8.0 - full screen selection (with mouse)
 // 0.9.0 - now with basic AI
+// 0.9.4 - The bots are getting there slowly...
 
 #define  TOOLNAMES  "TicTac"
 
 #define  VER_MAJ    0
 #define  VER_MIN    9
-#define  VER_SUB    3
+#define  VER_SUB    4
 
 #define  STR_(x)    #x
 #define  STR(x)     STR_(x)

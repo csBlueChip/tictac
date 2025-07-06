@@ -61,8 +61,8 @@ void  oxo (int id,  board_s* bp,  int x)
 	_analClr(x);
 
 	// optionally display new analysis results
-	if (!g.hide && (id != 9))  oxoAnal(id, bp, x) ;
-//	if (!g.hide             )  oxoAnal(id, bp, x) ;
+//.	if (!g.hide && (id != 9))  oxoAnal(id, bp, x) ;
+	if (!g.hide             )  oxoAnal(id, bp, x) ;
 
 	// 9 pieces
 	goyx(g.optY+1,x+1);  printf(who(bp, POS_TL));
@@ -83,34 +83,69 @@ void  oxo (int id,  board_s* bp,  int x)
 }
 
 //+============================================================================ =======================================
+// draw ALL children (even greyed out moves)
+//
+void  optShow (board_s* bp)
+{
+	int  h = g.hide;
+	if (g.unhide)  g.hide = 0 ;
+
+	int  cidx = 0;
+	while (cidx < bp->cCnt)  oxo(cidx++, bp->chld[cidx], OPTX(cidx)) ;
+	while (cidx < 9       )  oxo(cidx++, &g.b[0],        OPTX(cidx)) ;
+
+	g.hide = h;
+}
+
+//+============================================================================
+// is the mouse over an option ?
+//
+int   optChk (int* in)
+{
+//9	int  h = g.hide ? 5 : (g.loop ==9) ? 8 : 18 ;
+	int  h = g.hide ? 5 : g.analH +3 ;
+
+	// selecting an option?
+	if (INRANGE(g.my, g.optY, g.optY +h)) {  // y coord for options
+		int x = (g.mx -1) / g.optW;          // selection
+		if (INRANGE(x, 0, 8)) {              // 0..8
+			if ( INRANGE(g.mx, OPTX(x), OPTX(x+1)-1) )
+				return (*in = x + '0');      // fake like we just pressed the number
+		}
+	}
+	return -1;
+}
+
+//+============================================================================ =======================================
 // Draw the BIG grid
 //
 // This comment MAY stop `grep` from working! (cos unicode)
 //
-//	  ▄   ▄  ║   ▄▄▄   ║
-//	  ▀▄ ▄▀  ║  █   █  ║
-//	    █    ║  ▌   ▐  ║
-//	  ▄▀ ▀▄  ║  █   █  ║
-//	  ▀   ▀  ║   ▀▀▀   ║
-//	═════════╬═════════╬═════════
-//	         ║         ║
-//	  ▀▄ ▄▀  ║  █▀▀▀█  ║
-//	    █    ║  ▌   ▐  ║
-//	  ▄▀ ▀▄  ║  █▄▄▄█  ║
-//	         ║         ║
-//	═════════╬═════════╬═════════
-//	         ║         ║
-//	   █ █   ║   █▀█   ║
-//	    █    ║   █ █   ║
-//	   █ █   ║   █▄█   ║
-//	         ║         ║
+//     ▄   ▄  ║   ▄▄▄   ║
+//     ▀▄ ▄▀  ║  █   █  ║
+//       █    ║  ▌   ▐  ║
+//     ▄▀ ▀▄  ║  █   █  ║
+//     ▀   ▀  ║   ▀▀▀   ║
+//   ═════════╬═════════╬═════════
+//            ║         ║
+//     ▀▄ ▄▀  ║  █▀▀▀█  ║
+//       █    ║  ▌   ▐  ║
+//     ▄▀ ▀▄  ║  █▄▄▄█  ║
+//            ║         ║
+//   ═════════╬═════════╬═════════
+//            ║         ║
+//      █ █   ║   █▀█   ║
+//       █    ║   █ █   ║
+//      █ █   ║   █▄█   ║
+//            ║         ║
 //
-//	═════════╬═════════╬═════════
-//	         ║         ║
-//	   ▄ ▄   ║   ▄▄▄   ║
-//	    █    ║   █ █   ║
-//	   ▀ ▀   ║   ▀▀▀   ║
-//	         ║         ║
+//
+//   ═════════╬═════════╬═════════
+//            ║         ║
+//      ▄ ▄   ║   ▄▄▄   ║
+//       █    ║   █ █   ║
+//      ▀ ▀   ║   ▀▀▀   ║
+//            ║         ║
 //
 static
 void  _grid (int y,  int x)
@@ -450,35 +485,6 @@ int   plmChk (int* in)
 	if (INRANGE(g.mx, g.plmX+17, g.plmX+19))  return (*in = 'x') ;
 	if (INRANGE(g.mx, g.plmX   , g.plmX+19))  return (*in = 'p') ;
 	return -1 ;
-}
-
-//+============================================================================ =======================================
-// draw ALL children (even greyed out moves)
-//
-void  optShow (board_s* bp)
-{
-	int  cidx = 0;
-	while (cidx < bp->cCnt)  oxo(cidx++, bp->chld[cidx], OPTX(cidx)) ;
-	while (cidx < 9       )  oxo(cidx++, &g.b[0],        OPTX(cidx)) ;
-}
-
-//+============================================================================
-// is the mouse over an option ?
-//
-int   optChk (int* in)
-{
-//9	int  h = g.hide ? 5 : (g.loop ==9) ? 8 : 18 ;
-	int  h = g.hide ? 5 : g.analH +3 ;
-
-	// selecting an option?
-	if (INRANGE(g.my, g.optY, g.optY +h)) {  // y coord for options
-		int x = (g.mx -1) / g.optW;          // selection
-		if (INRANGE(x, 0, 8)) {              // 0..8
-			if ( INRANGE(g.mx, OPTX(x), OPTX(x+1)-1) )
-				return (*in = x + '0');      // fake like we just pressed the number
-		}
-	}
-	return -1;
 }
 
 //+============================================================================ =======================================

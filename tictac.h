@@ -134,6 +134,7 @@ typedef
 		int      par;             // game parity {0->{A=1/O, B=2/X}, 1->{A=2/X, B=1/O}}
 		int      loop;            // game mode (loop=9 is a normal/classic game)
 
+		int      unhide;          // hide override (mostly for Bot debug)
 		int      hide;            // hide ananlysis
 		pref_t   pref[10];        // (up to) 9 possible moves + 1 for the game board
 
