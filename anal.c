@@ -1,5 +1,6 @@
 #include  <string.h>
 
+#include  "anal.h"
 #include  "macro.h"
 #include  "tictac.h"
 #include  "gfx.h"
@@ -133,6 +134,26 @@ void  analyse (board_s* bp,  int st,  int nd)
 }
 
 //+============================================================================ =======================================
+// clear an analysis result
+//
+void  _analClr (int x)
+{
+	for (int y = g.optY +5 +2;  y <= g.optY +5 +g.analH;  y++) {
+		goyx(y,x);
+		printf("           ");
+	}
+}
+
+//+============================================================================
+// -1 will clear ALL analysis results
+//
+void  analClr (int x)
+{
+	if (x == -1)  for (int i = 0;  i < 9;  i++)  _analClr(OPTX(i)) ;
+	else          _analClr(x) ;
+}
+
+//+============================================================================
 // Show move analysis under a move option
 //
 void  oxoAnal (int id,  board_s* bp,  int x)
@@ -172,3 +193,4 @@ void  oxoAnal (int id,  board_s* bp,  int x)
 		}
 	}
 }
+

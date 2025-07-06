@@ -9,30 +9,6 @@
 #include  "conio.h"
 #include  "bot.h"
 
-int  wOpt = 13;  // width of an option
-
-#define OPTX(n)  ( ((n) * g.optW) + 2 )
-
-//+============================================================================ =======================================
-// clear old analysis results
-//
-void  _analClr (int x)
-{
-	for (int y = g.optY +5 +2;  y <= g.optY +5 +g.analH;  y++) {
-		goyx(y,x);
-		printf("           ");
-	}
-}
-
-//+============================================================================
-// -1 will clear ALL analysis blocks
-//
-void  analClr (int x)
-{
-	if (x != -1)  _analClr(x);
-	else          for (int i = 0;  i < 9;  i++)  _analClr(OPTX(i)) ;
-}
-
 //+============================================================================ =======================================
 // Draw a SMALL oxo grid
 //
@@ -58,7 +34,7 @@ void  oxo (int id,  board_s* bp,  int x)
 	goyx(g.optY+4,x  );  printf("---|---|---");
 	goyx(g.optY+5,x  );  printf("   |   |   ");
 
-	_analClr(x);
+	analClr(x);
 
 	// optionally display new analysis results
 //.	if (!g.hide && (id != 9))  oxoAnal(id, bp, x) ;
@@ -403,6 +379,17 @@ void  modeShow (void)
 }
 
 //+============================================================================
+// erase mode menu [never used]
+//
+void  modeClear (void)
+{
+	ink(NORM);
+	goyx(g.modeY, g.modeX);
+	printf("%*s", (5*5)-2, "");
+	fflush(stdout);
+}
+
+//+============================================================================
 // is mouse over a mode option
 //
 int  modeChk (void)
@@ -416,17 +403,6 @@ int  modeChk (void)
 				return i+5 ;
 			}
 	return 0;
-}
-
-//+============================================================================
-// erase mode menu [never used]
-//
-void  modeClear (void)
-{
-	ink(NORM);
-	goyx(g.modeY, g.modeX);
-	printf("%*s", (5*5)-2, "");
-	fflush(stdout);
 }
 
 //+============================================================================ =======================================
@@ -454,6 +430,9 @@ void  seqClear (void)
 
 //+============================================================================ =======================================
 // draw player menu
+//
+// Bot Token : [O] [X]
+// 0123456789012345678
 //
 void  plmShow (void)
 {

@@ -32,16 +32,21 @@ typedef
 mnuOpt_e;
 
 //----------------------------------------------------------------------------- ---------------------------------------
-mnuOpt_e  menuChk   (void) ;
-void      menuShow  (void) ;
-void      menuClear (void) ;
-
 void      oxoBig    (board_s* bp) ;
 int       oxoChk    (void) ;
 
 void      oxo       (int id,  board_s* bp,  int x) ;
 void      optShow   (board_s* bp) ;
 int       optChk    (int* in) ;
+
+void      overkill  (board_s* bp) ;
+
+void      plmShow   (void) ;
+int       plmChk    (int* in) ;
+
+void      menuShow  (void) ;
+void      menuClear (void) ;
+mnuOpt_e  menuChk   (void) ;
 
 void      seqShow   (int cnt) ;
 void      seqClear  (void) ;
@@ -50,15 +55,8 @@ void      modeShow  (void) ;
 void      modeClear (void) ;
 int       modeChk   (void) ;
 
-void      overkill  (board_s* bp) ;
-
 void      botShow   (void) ;
 bot_e     botChk    (void) ;
-
-void      plmShow   (void) ;
-int       plmChk    (int* in) ;
-
-void      analClr   (int x) ;
 
 #endif //GFX_H_
 
