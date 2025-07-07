@@ -1,3 +1,4 @@
+// need to consider if the opponents (immediate) next move has a win-2 option
 #include  <string.h>
 
 #include  "anal.h"

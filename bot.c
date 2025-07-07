@@ -6,6 +6,40 @@
 #include  <stdlib.h>
 
 //+============================================================================ =======================================
+static  int  pick[9] = {0};
+static  int  pcnt    = 0;
+
+static
+int  choose (int st,  int nd,  int c1,  int c2)
+{
+	pcnt = 0;
+
+	for (int i = st;  i < nd;  i++)
+		if ((g.pref[i].ink == c1) || (g.pref[i].ink == c2))  pick[pcnt++] = i ;
+
+	return pcnt;
+}
+
+//+============================================================================
+static
+int  chooseNot (int st,  int nd,  int c1,  int c2)
+{
+	pcnt = 0;
+
+	for (int i = st;  i < nd;  i++)
+		if ((g.pref[i].ink != c1) && (g.pref[i].ink != c2))  pick[pcnt++] = i ;
+
+	return pcnt;
+}
+
+//	// dont lose (if you can avoid it)
+//	pcnt = 0;
+//	for (int i = st;  i < nd;  i++)
+//		if (g.pref[i].ink != C_LOSE)  pick[pcnt++] = i ;
+//	// all losers?  random:-
+//	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
+
+//+============================================================================ =======================================
 // can only play a normal game - will never lose
 //
 // FFS, the little shit loses!!  You play: middle-right, bottom-left, bottom-right
@@ -13,21 +47,14 @@
 //
 int  bot_jacob (int* in,  int st,  int nd)
 {
-	int  pick[9] = {0};
-	int  pcnt    = 0;
-	int  key     = -1;
-
-	int  str[]   = {C_WIN, C_STRONG, C_FAIR, C_WEAK, C_LOSE2, C_LOSE};  // strength
+	int  col[] = {C_WIN, C_STRONG, C_FAIR, C_WEAK, C_LOSE2, C_LOSE};
 
 	if (g.move > 9)  return -1 ;
 
-	for (int s = 0;  (s < ARRCNT(str)) && !pcnt;  s++)
-		for (int i = st;  i < nd;  i++)
-			if (g.pref[i].ink == str[s])  pick[pcnt++] = i ;
+	for (int c = 0;  c < ARRCNT(col);  c++)
+		if (choose(st, nd, col[c], C_INVALID))  return (*in = pick[rand()%pcnt] +'0') ;
 
-	key = pick[rand()%pcnt] +'0';
-	if (in)  *in = key;
-	return         key;
+	return -1;
 }
 
 //+============================================================================
@@ -35,24 +62,18 @@ int  bot_jacob (int* in,  int st,  int nd)
 //
 int  bot_juanin (int* in,  int st,  int nd)
 {
-	int  pick[9] = {0};
-	int  pcnt    = 0;
-
 	if ((g.loop == 9) && (g.move > 9))  return -1 ;
 
-	// dont miss the chance to win
+	// take the first win you see
 	for (int i = st;  i < nd;  i++)
 		if (g.pref[i].ink == C_WIN)  return (*in = i +'0') ;
 
-	// dont lose (if you can avoid it)
-	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink != C_LOSE)  pick[pcnt++] = i ;
-
-	// all losers?  random:-
-	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
+	// if you can ONLY play a losing move - just pick one
+	if (choose(st, nd, C_LOSE, C_INVALID) == (nd - st))  return (*in = pick[rand()%pcnt] +'0') ;
 
 	// pick something that doesn't lose
-	return  (*in = pick[rand()%pcnt] +'0') ;
+	(void)chooseNot(st, nd, C_LOSE, C_INVALID);
+	return (*in = pick[rand()%pcnt] +'0') ;
 }
 
 //+============================================================================
@@ -60,34 +81,20 @@ int  bot_juanin (int* in,  int st,  int nd)
 //
 int  bot_david (int* in,  int st,  int nd)
 {
-	int  pick[9] = {0};
-	int  pcnt    = 0;
-
 	if ((g.loop == 9) && (g.move > 9))  return -1 ;
 
-	// dont miss the chance to win
-	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink == C_WIN)  return (*in = i +'0') ;
+	// dont miss the chance to win or win2
+	if (choose(st, nd, C_WIN, C_WIN2))     return (*in = pick[rand()%pcnt] +'0') ;
 
-	// dont miss the chance to win NEXT time around
-	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink == C_WIN2)  return (*in = i +'0') ;
+	// pick a "strong" or "fair" move
+	if (choose(st, nd, C_STRONG, C_FAIR))  return (*in = pick[rand()%pcnt] +'0') ;
 
-	// pick a "strong" move
-	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink == C_STRONG)  pick[pcnt++] = i ;
-	if (pcnt)  return (*in = pick[rand()%pcnt] +'0') ;
-
-	// dont lose (if you can avoid it)
-	pcnt = 0;
-	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink != C_LOSE)  pick[pcnt++] = i ;
-
-	// all losers?  random:-
-	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
+	// if you can ONLY play a losing move - just pick one
+	if (choose(st, nd, C_LOSE, C_INVALID) == (nd - st))  return (*in = pick[rand()%pcnt] +'0') ;
 
 	// pick something that doesn't lose
-	return  (*in = pick[rand()%pcnt] +'0') ;
+	(void)chooseNot(st, nd, C_LOSE, C_INVALID);
+	return (*in = pick[rand()%pcnt] +'0') ;
 }
 
 //+============================================================================
@@ -95,47 +102,30 @@ int  bot_david (int* in,  int st,  int nd)
 //
 int  bot_watson (int* in,  int st,  int nd)
 {
-	int  pick[9]  = {0};
-	int  pcnt     = 0;
-
 	if ((g.loop == 9) && (g.move > 9))  return -1 ;
 
 	// dont miss the chance to win now
-	pcnt = 0;
-	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink == C_WIN)  pick[pcnt++] = i ;
-	if (pcnt)  return (*in = pick[rand()%pcnt] +'0') ;
-
-//.	for (int i = st;  i < nd;  i++)
-//.		if (g.pref[i].ink == C_WIN)  return (*in = i +'0') ;
+	if (choose(st, nd, C_WIN, C_INVALID))     return (*in = pick[rand()%pcnt] +'0') ;
 
 	// dont miss the chance to win NEXT time around
-	pcnt = 0;
-	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink == C_WIN2)  pick[pcnt++] = i ;
-	if (pcnt)  return (*in = pick[rand()%pcnt] +'0') ;
-
-	// eschew all losers
-	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink != C_LOSE)  pick[pcnt++] = i ;
-	// all losers?  ...Lose in a random way
-	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
+	if (choose(st, nd, C_WIN2, C_INVALID))    return (*in = pick[rand()%pcnt] +'0') ;
 
 	// pick a "strong" move
-	pcnt = 0;
-	for (int i = st;  i < nd;  i++)
-		if (g.pref[i].ink == C_STRONG)  pick[pcnt++] = i ;
-	if (pcnt)  return (*in = pick[rand()%pcnt] +'0') ;
+	if (choose(st, nd, C_STRONG, C_INVALID))  return (*in = pick[rand()%pcnt] +'0') ;
 
-	// eschew all (lose &) lose_2 options
-	pcnt = 0;
-	for (int i = st;  i < nd;  i++)
-		if ((g.pref[i].ink != C_LOSE) && (g.pref[i].ink != C_LOSE2))  pick[pcnt++] = i ;
-	// all losers?  ...Lose in a random way
-	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
+	// if you can ONLY play a losing move - just pick one
+	// we prefer a lose_2 on the slim chance it might push us past the point of "DRAW"
+	if (choose(st, nd, C_LOSE, C_LOSE2) == (nd - st)) {
+		if      (choose(st, nd, C_LOSE2, C_INVALID))  return (*in = pick[rand()%pcnt] +'0') ;
+		else if (choose(st, nd, C_LOSE,  C_INVALID))  return (*in = pick[rand()%pcnt] +'0') ;
+	}
+
+	// if you can ONLY play a losing move - just pick one
+	if (choose(st, nd, C_LOSE, C_INVALID) == (nd - st))  return (*in = pick[rand()%pcnt] +'0') ;
 
 	// pick something that doesn't lose
-	return  (*in = pick[rand()%pcnt] +'0') ;
+	(void)chooseNot(st, nd, C_LOSE, C_LOSE2);
+	return (*in = pick[rand()%pcnt] +'0') ;
 }
 
 //+============================================================================ =======================================
