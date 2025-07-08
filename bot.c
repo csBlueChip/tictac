@@ -32,13 +32,6 @@ int  chooseNot (int st,  int nd,  int c1,  int c2)
 	return pcnt;
 }
 
-//	// dont lose (if you can avoid it)
-//	pcnt = 0;
-//	for (int i = st;  i < nd;  i++)
-//		if (g.pref[i].ink != C_LOSE)  pick[pcnt++] = i ;
-//	// all losers?  random:-
-//	if (!pcnt)  return (*in = st +(rand()%(nd-st)) +'0') ;
-
 //+============================================================================ =======================================
 // can only play a normal game - will never lose
 //

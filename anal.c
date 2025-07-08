@@ -6,6 +6,8 @@
 #include  "tictac.h"
 #include  "gfx.h"
 
+// this is an intersting junction in a loop-6 game: 8, 2, 1, 3, 2, 1, 3, 5, 5, 5, 4, 3, 3, 4, ...
+
 //----------------------------------------------------------------------------- ---------------------------------------
 // the stack doesn't need to be any bigger
 //
@@ -68,13 +70,21 @@ void  simpleMinMax (board_s* bp,  int st,  int nd)
 
 	// negative numbers are just not friendly!
 	if (ambL < 0) {
-		for (int i = st;  i < nd;  i++)  g.pref[i].amb += (-ambL) ;
+		for (int i = st;  i < nd;  i++) {
+			// do not (re-)rate moves which are already rated
+			if (g.pref[i].ink != C_FAIR)  continue ;
+
+			g.pref[i].amb += (-ambL) ;
+		}
 		ambH += (-ambL) ;
 		ambL  = 0;
 	}
 
 	// pass 2: Highlight highest and lowest differences
 	for (int i = st;  i < nd;  i++) {
+		// do not (re-)rate moves which are already rated
+		if (g.pref[i].ink != C_FAIR)  continue ;
+
 		if      (g.pref[i].amb == ambH)  g.pref[i].ink = C_STRONG ;
 		else if (g.pref[i].amb == ambL)  g.pref[i].ink = C_WEAK   ;
 	}
