@@ -257,7 +257,11 @@ swapSides:  // When the bot swaps/toggles sides mid-game
 
 			} else if ((in == KEY_CTRL_C) || (in == KEY_CTRL_Q))  {  // ^C quit
 				ink(NORM);
-				MSGFYX(g.seqY+3,0, "Quit\e[K");
+				goyx(g.seqY+3,0);
+				if (g.botID == BOT_JACOB)
+					printf("A STRANGE GAME.\r\nTHE ONLY WINNING MOVE IS\r\nNOT TO PLAY.");
+				else
+					printf("Quit\e[K");
 				return 0;
 
 			} else if (KEY_ISALT(in)) {                         // Alt-? Chnge bot
@@ -378,7 +382,7 @@ void  cleanup (void)
 {
 	mouse(MRPT_NONE) ;
 	(void)termRestore(NULL);
-	goyx(g.seqY+5,1);
+	goyx(g.seqY+4+(2*(g.botID==BOT_JACOB)),1);
 }
 
 //++=========================================================================== =======================================

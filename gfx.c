@@ -412,20 +412,6 @@ int  modeChk (void)
 	return 0;
 }
 
-//+============================================================================ =======================================
-// Show sequence .. moves that are available to 'redo' are in dark grey
-//
-void  seqShow (int cnt)
-{
-	ink(NORM);
-	MSGFYX(g.seqY,1, "\e[K");  // clear old sequence
-	goyx(g.seqY,1);
-
-	int  i = 0;
-	while (i < g.move)  { ink((i&1^g.pl1)?BCYN:BRED);  printf("%d, ", g.play[i++].in);  }
-	while (i < g.last)  { ink((i&1^g.pl1)?DCYN:DRED);  printf("%d, ", g.play[i++].in);  }
-}
-
 //+============================================================================
 // erase sequnce line
 //
@@ -434,6 +420,20 @@ void  seqClear (void)
 	ink(NORM);
 	MSGFYX(g.seqY,1, "\e[K");
 	MSGFYX(g.seqY+1,1, "\e[K");
+}
+
+//+============================================================================ =======================================
+// Show sequence .. moves that are available to 'redo' are in dark grey
+//
+void  seqShow (int cnt)
+{
+	seqClear();
+
+	goyx(g.seqY,1);
+	int  i = 0;
+	while (i < g.move)  { ink((i&1^g.pl1)?BCYN:BRED);  printf("%d, ", g.play[i++].in);  }
+	while (i < g.last)  { ink((i&1^g.pl1)?CYN:RED);  paper(ONBLU);  printf("%d, ", g.play[i++].in);  }
+	ink(NORM);
 }
 
 //+============================================================================ =======================================
