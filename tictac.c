@@ -106,10 +106,10 @@ swapSides:  // When the bot swaps/toggles sides mid-game
 			const char* const  icon2 = ((g.move & 1) ^ g.pl1) ? plx[0] : plo[0] ;  // other player
 			goyx(g.seqY+2,0);
 			ink(NORM);
-			if      (bp->win)          { MSGF("Player %s WINS!\e[K", icon2);                     over = 1; }
-			else if (bp->cnt == 9)     { MSGF("It's a draw!\e[K");                               over = 1; }
-			else if (g.move > g.draw)  { MSGF("%d moves made - I declare a draw!\e[K", g.draw);  over = 1; }
-			else                       { MSGF("Move %d: %s >\e[K", g.move, icon1);                         }
+			if      (bp->win)          { MSGF("Player-%d %s WINS!\e[K", (g.move & 1) +1, icon2);  over = 1; }
+			else if (bp->cnt == 9)     { MSGF("It's a draw!\e[K");                                over = 1; }
+			else if (g.move > g.draw)  { MSGF("%d moves made - I declare a draw!\e[K", g.draw);   over = 1; }
+			else                       { MSGF("Move %d: %s >\e[K", g.move, icon1);                          }
 
 			//----------------------------------------------
 			// Get user input
@@ -230,6 +230,7 @@ swapSides:  // When the bot swaps/toggles sides mid-game
 				oxoBig(bp);
 				shadow(bp, -1, -1);
 				overkill(bp);
+				seqShow(g.move-1);
 
 			} else if (in == KEY_CTRL_E) {                      // ^H hint show/hide [EASY]
 				if (g.bot[g.botID].fn) {

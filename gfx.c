@@ -422,8 +422,8 @@ void  seqShow (int cnt)
 	goyx(g.seqY,1);
 
 	int  i = 0;
-	ink(BWHT);  while (i < g.move)  printf("%d, ", g.play[i++].in) ;
-	ink(DGRY);  while (i < g.last)  printf("%d, ", g.play[i++].in) ;
+	while (i < g.move)  { ink((i&1^g.pl1)?BCYN:BRED);  printf("%d, ", g.play[i++].in);  }
+	while (i < g.last)  { ink((i&1^g.pl1)?DCYN:DRED);  printf("%d, ", g.play[i++].in);  }
 }
 
 //+============================================================================
