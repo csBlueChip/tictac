@@ -13,7 +13,7 @@ BLDTYPE=exe
 # All file extensions are appended later
 #
 TOOLNAME = tictac
-TESTPRAM = 6
+TESTPRAM = -6 -W -b +78
 
 #------------------------------------------------------------------------------
 # Commands (for future cross platform support)
