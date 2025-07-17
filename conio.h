@@ -221,9 +221,11 @@ typedef
 		KEY_TAB         = KEY_CTRL_I,
 		KEY_ESC         = KEY_CTRL_BRA,
 		KEY_RETURN      = KEY_CTRL_M,
-
 	}
 keycap_t;
+
+#define  KEYM_ALT    (0x1B00)
+#define  KEY_ALT(k)  (KEYM_ALT | ((k) & 0xFF))
 
 //============================================================================= ========================================
 #define  MOUSE_ISRPT(r)   ( ((r) & 0x0000FF00) == MRPT)
@@ -242,6 +244,7 @@ keycap_t;
 #define  KEY_ISINTL(w)    ( ((w) & 0x0000FF00) == KEYM_INTL )
 #define  KEY_ISCUR(w)     ( ((w) & 0x0000FF00) == KEYM_CUR  )
 #define  KEY_ISFN(w)      ( ((w) & 0x0000FF00) == KEYM_FN   )
+#define  KEY_ISALT(w)     ( ((w) & 0x0000FF00) == KEYM_ALT  )
 
 //============================================================================= ========================================
 bool  kbdInit (void) ;

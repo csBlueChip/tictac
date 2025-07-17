@@ -51,9 +51,9 @@ int  bot_jacob (int* in,  int st,  int nd)
 }
 
 //+============================================================================
-// JUANIN : considers immediate wins & loses, but otherwise play randomly
+// CABOT : considers immediate wins & loses, but otherwise play randomly
 //
-int  bot_juanin (int* in,  int st,  int nd)
+int  bot_cabot (int* in,  int st,  int nd)
 {
 	if ((g.loop == 9) && (g.move > 9))  return -1 ;
 
@@ -70,7 +70,7 @@ int  bot_juanin (int* in,  int st,  int nd)
 }
 
 //+============================================================================
-// DAVID : Juanin + consider WIN2 > FAIR
+// DAVID : Cabot + consider WIN2 > FAIR
 //
 int  bot_david (int* in,  int st,  int nd)
 {
@@ -121,6 +121,14 @@ int  bot_watson (int* in,  int st,  int nd)
 	return (*in = pick[rand()%pcnt] +'0') ;
 }
 
+//+============================================================================
+// FALKEN : You will NOT win!
+//
+//	int  bot_falken (int* in,  int st,  int nd)
+//	{
+//		return 9;
+//	}
+
 //+============================================================================ =======================================
 // Activate a Bot/PvP
 //
@@ -158,9 +166,10 @@ void  botSetup (void)
 	g.bot[BOT_NONE]   = (bot_s){.fn=NULL      , .name=" ---  ",  .loop= 0};
 	g.bot[BOT_PVP]    = (bot_s){.fn=NULL      , .name=" PvP  ",  .loop=-1};
 	g.bot[BOT_JACOB]  = (bot_s){.fn=bot_jacob , .name="Jacob ",  .loop= 9};
-	g.bot[BOT_JUANIN] = (bot_s){.fn=bot_juanin, .name="Juanin",  .loop=-1};
+	g.bot[BOT_CABOT]  = (bot_s){.fn=bot_cabot , .name="Cabot ",  .loop=-1};
 	g.bot[BOT_DAVID]  = (bot_s){.fn=bot_david , .name="David ",  .loop=-1};
 	g.bot[BOT_WATSON] = (bot_s){.fn=bot_watson, .name="Watson",  .loop=-1};
+//	g.bot[BOT_FALKEN] = (bot_s){.fn=bot_falken, .name="Falken",  .loop=-1};
 
 	g.botID = BOT_PVP;
 }

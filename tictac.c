@@ -102,14 +102,14 @@ swapSides:  // When the bot swaps/toggles sides mid-game
 			//----------------------------------------------
 			// Evaluate game state and draw prompt
 			//----------------------------------------------
-			const char* const  icon1 = (g.move & 1) ? plo[0] : plx[0] ;  // this player
-			const char* const  icon2 = (g.move & 1) ? plx[0] : plo[0] ;  // other player
+			const char* const  icon1 = ((g.move & 1) ^ g.pl1) ? plo[0] : plx[0] ;  // this player
+			const char* const  icon2 = ((g.move & 1) ^ g.pl1) ? plx[0] : plo[0] ;  // other player
 			goyx(g.seqY+2,0);
 			ink(NORM);
-			if      (bp->win)                { MSGF("Player %s WINS!\e[K", icon2);                       over = 1; }
-			else if (bp->cnt == 9)           { MSGF("It's a draw!\e[K");                                 over = 1; }
-			else if (g.move +1 >= MOVE_MAX)  { MSGF("%d moves made - I declare a draw!\e[K", MOVE_MAX);  over = 1; }
-			else                             { MSGF("Move %d: %s >\e[K", g.move, icon1);                           }
+			if      (bp->win)          { MSGF("Player %s WINS!\e[K", icon2);                     over = 1; }
+			else if (bp->cnt == 9)     { MSGF("It's a draw!\e[K");                               over = 1; }
+			else if (g.move > g.draw)  { MSGF("%d moves made - I declare a draw!\e[K", g.draw);  over = 1; }
+			else                       { MSGF("Move %d: %s >\e[K", g.move, icon1);                         }
 
 			//----------------------------------------------
 			// Get user input
@@ -188,7 +188,7 @@ swapSides:  // When the bot swaps/toggles sides mid-game
 						switch (menuChk()) {
 							case MNU_UNDO  :  in = KEY_LEFT;    break ;
 							case MNU_REDO  :  in = KEY_RIGHT;   break ;
-							case MNU_ANAL  :  in = g.bot[g.botID].fn ? KEY_CTRL_H : KEY_CTRL_A;  break ;
+							case MNU_ANAL  :  in = g.bot[g.botID].fn ? KEY_CTRL_E : KEY_CTRL_A;  break ;
 							case MNU_AGAIN :  in = KEY_CTRL_R;  break ;
 							case MNU_QUIT  :  in = KEY_CTRL_C;  break ;
 							default :  break ;
@@ -204,10 +204,34 @@ swapSides:  // When the bot swaps/toggles sides mid-game
 			//----------------------------------------------
 			// Special keys
 			//----------------------------------------------
+			// just one more retro-fitted bodge
+			// turns ou the online game has X going first - so I had to fudge in some pl1_swap code
+			if (g.pl1) {
+				if      (in == 'x')  in = 'o' ;
+				else if (in == 'o')  in = 'x' ;
+			}
+
 			if        (in == '`') {                             // ` (bactick) -> '0'
 				in = '0';
 
-			} else if (in == KEY_CTRL_H) {                      // ^H hint show/hide
+			// -------------------------------------
+			// jump to PvP mode without erasing the game
+			} else if (in == KEY_CTRL_D) {                      // ^D debrief
+				g.botID = BOT_PVP;
+				botSet(g.botID);
+				botShow();
+				menuShow();
+
+			// -------------------------------------
+			} else if (in == '!') {                             // ! Swap who plays first
+				g.pl1 ^= 1;
+				plmShow();
+				optShow(bp);
+				oxoBig(bp);
+				shadow(bp, -1, -1);
+				overkill(bp);
+
+			} else if (in == KEY_CTRL_E) {                      // ^H hint show/hide [EASY]
 				if (g.bot[g.botID].fn) {
 					g.hint ^= 1;
 					menuShow();
@@ -230,10 +254,55 @@ swapSides:  // When the bot swaps/toggles sides mid-game
 					parFlip(bp);
 				}
 
-			} else if (in == KEY_CTRL_C) {                      // ^C quit
+			} else if ((in == KEY_CTRL_C) || (in == KEY_CTRL_Q))  {  // ^C quit
 				ink(NORM);
 				MSGFYX(g.seqY+3,0, "Quit\e[K");
 				return 0;
+
+			} else if (KEY_ISALT(in)) {                         // Alt-? Chnge bot
+				int  prev  = g.botID;
+				int  reset = !((in & 0xFF) & 0x20);
+				switch ((in|0x20) & 0xFF) {
+					case 'p' :  g.botID = BOT_PVP   ;  break ;
+					case 'j' :  g.botID = BOT_JACOB ;  break ;
+					case 'c' :  g.botID = BOT_CABOT ;  break ;
+					case 'd' :  g.botID = BOT_DAVID ;  break ;
+					case 'w' :  g.botID = BOT_WATSON;  break ;
+//					case 'f' :  g.botID = BOT_FALKEN;  break ;
+					default  :  break ;
+				}
+				if (prev != g.botID) {
+					botSet(g.botID);
+					menuShow();
+					modeShow();
+					botShow();
+					if (in & 0x20) {  // Use SHIFT to avoid a game reset ;)
+						g.hide = 1;
+						menuShow();
+						seqClear();
+						return 1;     // trigger reentry to tictac()
+					}
+				}
+
+			} else if ((in == KEY_UP) || (in == KEY_DOWN)) {    // Change bot
+				int  prev = g.botID;
+
+				if (in == KEY_UP) {                             // up one
+					if (INRANGE(g.botID, 2, BOT_CNT  ))  g.botID-- ;
+				} else {                                        // down one
+					if (INRANGE(g.botID, 1, BOT_CNT-2))  g.botID++ ;
+				}
+
+				if (prev != g.botID) {
+					botSet(g.botID);
+					menuShow();
+					modeShow();
+					botShow();
+					g.hide = 1;
+//! comment out these two lines - and you can change bot mid-game ;) [within limitations]
+					seqClear();
+					return 1;    // trigger reentry to tictac()
+				}
 
 			} else if (in == KEY_CTRL_R) {                      // ^R new game
 				seqClear();
@@ -322,9 +391,17 @@ int main (int argc,  char* argv[])
 //	printf("# Use: %s [5|6|7|8|9] [-a]\n", argv[0]);
 
 	printf("# Game Keys: ");
-	ink(BYEL);
-	printf("<-:Undo, ->:Redo, ^A:Analysis, ^R:Restart, ^C:Quit\n");
-	ink(NORM);
+	ink(BYEL);  printf(" !:Ply1{O,X} ");
+	ink(BGRN);  printf(" ^Analysis ");
+	ink(BYEL);  printf(" ^Restart ");
+	ink(BGRN);  printf(" ^Quit ");
+	ink(BYEL);  printf(" \u2191\u2193Bot ");
+	ink(BGRN);  printf(" {o,x,p}:BotPiece ");
+	ink(BYEL);  printf(" ^Easy ");
+	ink(BGRN);  printf(" ^Debrief ");
+	ink(BYEL);  printf(" \u2190Undo ");
+	ink(BGRN);  printf(" \u2192Redo ");
+	ink(NORM);  printf("\n");
 
 	printf("# Analysis Key: ");
 	ink(C_INVALID);  printf("invalid, ");
@@ -342,27 +419,27 @@ int main (int argc,  char* argv[])
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	memset(&g, 0, sizeof(g));
 
-	g.optY = 26;   // y coord for options
-	g.seqY = 48;   // coord for sequence (other stuff below it)
+	g.modeY = 11;  // game mode menu {6..9}
+	g.modeX = 5;   // ...
+
+	g.mnuY = 14;   // main menu
+	g.mnuX = 5;    // ...
+
+	g.plmY = 19;   // player menu
+	g.plmX = 5;    // ...
 
 	g.oxoY = 7;    // main board
 	g.oxoX = 38;   // ...
 
-	g.botY = 11;   // bot menu
+	g.botY = 10;   // bot menu
 	g.botX = 77;   // ...
 	botSetup();
 	g.botT = 1;    // Play as X
 
-	g.plmY = 21;   // player menu
-	g.plmX = 6;    // ...
-
+	g.optY = 26;   // y coord for options
 	g.optW = 13;   // Width of an option
 
-	g.mnuY = 16;   // main menu
-	g.mnuX = 5;    // ...
-
-	g.modeY = 13;  // game mode menu {6..9}
-	g.modeX = 5;   // ...
+	g.seqY = 48;   // coord for sequence (other stuff below it)
 
 	// game style :
 	//   5 = the 'online' version
@@ -377,31 +454,89 @@ int main (int argc,  char* argv[])
 	g.hide   = 1;  // hide analysis & disable hints
 	g.hint   = 0;  // enable hints in bot mode
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	// build every possible game
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	printf("# Find complete solution set...");
-	(void)build(9);
-//.-	printf("%d possible game sequences\n", g.bn);
+	g.pl1    = 0;  // player-1 is {0->"O", 1->"X"}
 
-	// work out all the loop points
-	for (int i = 5;  i <= 8;  i++) {
-		printf("# Resolve loop points @%d ... \n", i);
-		loopat(i);
-	}
+	g.draw   = 36;  // draw after n moves
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// parse CLI (badly)
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	for (int i = 1;  i < argc;  i++) {
-		if      (strcmp(argv[i], "-b") == 0)  g.unhide = 1 ;
-		else if (strcmp(argv[i], "-a") == 0)  g.hide   = 0 ;
-		else                                  g.loop   = atoi(argv[i]) ;
+		if      (strcmp(argv[i], "-?") == 0) {
+			printf("  -5 .. -9   .. Game mode\n");
+			printf("  -!         .. Player-1 => X\n");
+			printf("  -a         .. Analysis display\n");
+//			printf("  -b         .. Analysis display during PvB\n");
+			printf("\n");
+			printf("  -1         .. Bot goes first\n");
+			printf("  -e         .. Easy mode (hints given)\n");
+			printf("  +<N>       .. N = Number of moves to draw {9..%d}\n", MOVE_MAX);
+			printf("\n");
+			printf("  -J         .. Bot: Jacob\n");
+			printf("  -C         .. Bot: Cabot\n");
+			printf("  -D         .. Bot: David\n");
+			printf("  -W         .. Bot: Watson\n");
+//			printf("  -F         .. Bot: Falken\n");
+			printf("\n");
+			printf("  xogone.com .. Synonym for -5 -! -1 -W\n");
+			printf("\n");
+			exit(0);
+		}
+		else if (strcmp(argv[i], "-!") == 0)  g.pl1    = 1 ;  // player-1 -> X
+		else if (strcmp(argv[i], "-1") == 0)  g.botT   = 0 ;  // bot goes first
+		else if (strcmp(argv[i], "-e") == 0)  g.hint   = 1 ;  // hinting enabled
+
+		else if (strcmp(argv[i], "-a") == 0)  g.hide   = 0 ;  // analysis displayed
+		else if (strcmp(argv[i], "-b") == 0)  g.unhide = 1 ;  // enable bot analysis [hidden]
+
+		else if (strcmp(argv[i], "-5") == 0)  g.loop   = 5 ;  // loop-5
+		else if (strcmp(argv[i], "-6") == 0)  g.loop   = 6 ;  // loop-6
+		else if (strcmp(argv[i], "-7") == 0)  g.loop   = 7 ;  // loop-7
+		else if (strcmp(argv[i], "-8") == 0)  g.loop   = 8 ;  // loop-8
+		else if (strcmp(argv[i], "-9") == 0)  g.loop   = 9 ;  // loop-9
+
+		else if (strcmp(argv[i], "-J") == 0)  g.botID  = BOT_JACOB ;
+		else if (strcmp(argv[i], "-C") == 0)  g.botID  = BOT_CABOT ;
+		else if (strcmp(argv[i], "-D") == 0)  g.botID  = BOT_DAVID ;
+		else if (strcmp(argv[i], "-W") == 0)  g.botID  = BOT_WATSON ;
+//		else if (strcmp(argv[i], "-F") == 0)  g.loop   = BOT_FALKEN ;
+
+		else if (*argv[i] == '+')  {
+			g.draw = atoi(&argv[i][1]);
+			if (!INRANGE(g.draw, 9, MOVE_MAX)) {
+				printf("! draw range is: 9 .. %d\n", MOVE_MAX);
+				exit(53);
+			}
+		}
+
+		else if (strcmp(argv[i], "xogone.com") == 0) {
+			g.loop  = 5;  // loop 5
+			g.pl1   = 1;  // X goes first
+			g.botT  = 0;  // Bot goes first
+			g.botID = BOT_WATSON;
+		}
 	}
-	if (!INRANGE(g.loop, 5, 9)) {
-		printf("! Unknown game type: %d\n", g.loop);
-		exit(99);
+
+	//! bodge
+	if (g.botID == BOT_JACOB)  g.loop = 9 ;
+
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// build every possible game
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	printf("# Draw declared at %d moves\n", g.draw);
+
+	printf("# Find complete solution set...\n");
+	(void)build(9);
+//.-	printf("%d possible game sequences\n", g.bn);
+
+	printf("# Resolve loop points");
+	// work out all the loop points
+	for (int i = 5;  i <= 8;  i++) {
+		printf(" @%d", i);
+		fflush(stdout);
+		loopat(i);
 	}
+	printf("\n");
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// game display

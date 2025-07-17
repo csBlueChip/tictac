@@ -9,11 +9,12 @@ typedef
 
 		BOT_PVP,
 		BOT_JACOB,
-		BOT_JUANIN,
+		BOT_CABOT,
 		BOT_DAVID,
 		BOT_WATSON,
+//		BOT_FALKEN,
 
-		BOT_CNT        // must be last
+		BOT_CNT  // must be last
 	}
 bot_e;
 

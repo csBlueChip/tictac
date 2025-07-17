@@ -34,6 +34,7 @@ mnuOpt_e;
 //----------------------------------------------------------------------------- ---------------------------------------
 void      oxoBig    (board_s* bp) ;
 int       oxoChk    (void) ;
+void      shadow    (board_s* bp,  int opt,  int pos) ;
 
 void      oxo       (int id,  board_s* bp,  int x) ;
 void      optShow   (board_s* bp) ;

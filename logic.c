@@ -67,6 +67,7 @@ const char* const  who (board_s* bp,  int pos)
 	int  pl = occupier(bp, pos);
 	if (!pl)  return ple ;  // empty
 	pl ^= (g.par *3);       // flip winner if parity is odd
+	pl ^= (g.pl1 *3);       // flip winner if game is inverted
 
 	// Current move
 	if ((bp->seq &0xF) == pos)

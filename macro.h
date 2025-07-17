@@ -8,9 +8,9 @@
 #define  ARRCNT(a)  ( sizeof(a) / sizeof(*(a)) )
 
 #define  INRANGE(x,min,max)  ({      \
-	typeof(x)   _x   = x;            \
-	typeof(min) _min = min;          \
-	typeof(max) _max = max;          \
+	typeof(x) _x   = x;              \
+	typeof(x) _min = (typeof(x))min;            \
+	typeof(x) _max = (typeof(x))max;            \
 	((_x >= _min) && (_x <= _max));  \
 })
 

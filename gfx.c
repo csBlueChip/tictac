@@ -188,7 +188,8 @@ void  _piece (int y,  int x,  board_s* bp,  int pos)
 	const char* const*  ico = empty;                // icon pointer
 
 	if (occ) {
-		occ = (occ ^ (g.par *3)) -1;    // adjust occupier against game parity (for looping games)
+//		occ = (occ ^ (g.par *3)) -1;    // adjust occupier against game parity (for looping games)
+		occ = (occ ^ (g.par *3) ^ (g.pl1 *3)) -1 ;  // consider parity and inversion (pl-1 swap)
 
 		if (pos >= 10) {          // shadow bodge
 			ink(iconClr[occ][4]);
@@ -273,13 +274,19 @@ void  botShow (void)
 		goyx(BOTY(i), g.botX);
 		ink(BYEL);
 		if (i == g.botID) {
-			paper(ONRED);
+			paper(ONBLU);
 			printf(" > %s < ", g.bot[i].name);
 		} else {
 			paper(ONBLK);
 			printf("   %s   ", g.bot[i].name);
 		}
 	}
+
+//!
+	goyx(BOTY(BOT_CNT), g.botX);
+	ink(DGRY);
+	printf("   Falken   ");
+
 	fflush(stdout);
 }
 
@@ -326,7 +333,7 @@ void  menuShow (void)
 
 		// show HINT button
 		if (g.hint)  paper(ONRED) ;
-		goyx(g.mnuY, g.mnuX+16);  printf("[HINT]");
+		goyx(g.mnuY, g.mnuX+16);  printf("[EASY]");
 	}
 
 	fflush(stdout);
@@ -426,6 +433,7 @@ void  seqClear (void)
 {
 	ink(NORM);
 	MSGFYX(g.seqY,1, "\e[K");
+	MSGFYX(g.seqY+1,1, "\e[K");
 }
 
 //+============================================================================ =======================================
@@ -441,28 +449,40 @@ void  plmShow (void)
 	ink(BCYN);
 	printf("Bot Token : ");
 
+	const char*  pl1 = g.pl1 ? "[X]" : "[O]";
+	const char*  pl2 = g.pl1 ? "[O]" : "[X]";
+
 	if (g.botT == 0) {
-		ink(BYEL);  paper(PAPER(C_RED));  printf("[O]");
-		ink(BYEL);                        printf("  [X]");
+		ink(BYEL);  paper(PAPER(C_BLU));  printf("%s", pl1);
+		ink(BYEL);                        printf(" <!> %s", pl2);
 
 	} else {
-		ink(BYEL);            printf("[O]  ");
-		paper(PAPER(C_RED));  printf("[X]");
+		ink(BYEL);            printf("%s <!> ", pl1);
+		paper(PAPER(C_BLU));  printf("%s", pl2);
 	}
+
+	goyx(g.plmY+1, g.plmX+12);
+	ink(BCYN);
+	printf("-1-     -2-");
 }
 
-// Bot Token : [O] [X]
-// 0123456789012345678
+// Bot Token : [O] <!> [X]
+// 01234567890123456789012
 
 //+============================================================================
 // is the mouse over the player swap button ?
 //
 int   plmChk (int* in)
 {
-	if (g.my != g.plmY)  return -1 ;
-	if (INRANGE(g.mx, g.plmX+12, g.plmX+14))  return (*in = 'o') ;
-	if (INRANGE(g.mx, g.plmX+17, g.plmX+19))  return (*in = 'x') ;
-	if (INRANGE(g.mx, g.plmX   , g.plmX+19))  return (*in = 'p') ;
+	if (g.my == g.plmY) {
+		if (INRANGE(g.mx, g.plmX+12, g.plmX+14))  return (*in = g.pl1 ? 'x' : 'o') ;
+		if (INRANGE(g.mx, g.plmX+16, g.plmX+18))  return (*in = '!') ;
+		if (INRANGE(g.mx, g.plmX+20, g.plmX+22))  return (*in = g.pl1 ? 'o' : 'x') ;
+		if (INRANGE(g.mx, g.plmX   , g.plmX+22))  return (*in = 'p') ;
+	} else if (g.my == g.plmY+1) {
+		if (INRANGE(g.mx, g.plmX+12, g.plmX+14))  return (*in = g.pl1 ? 'x' : 'o') ;
+		if (INRANGE(g.mx, g.plmX+20, g.plmX+22))  return (*in = g.pl1 ? 'o' : 'x') ;
+	}
 	return -1 ;
 }
 

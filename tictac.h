@@ -114,7 +114,7 @@ pref_t;
 //----------------------------------------------------------------------------- ---------------------------------------
 // This'll do for now...
 //
-#define  MOVE_MAX  36  // Declare a 'draw' after N moves
+#define  MOVE_MAX  78  // Declare a 'draw' after N moves  ((117_width / 3_per_move) * 2_lines)
 
 typedef
 	struct  play {
@@ -133,6 +133,7 @@ typedef
 		int      max;             // max pieces allowed on a board
 		int      par;             // game parity {0->{A=1/O, B=2/X}, 1->{A=2/X, B=1/O}}
 		int      loop;            // game mode (loop=9 is a normal/classic game)
+		int      pl1;             // Player #1 : 0:O, 1:X
 
 		int      unhide;          // hide override (mostly for Bot debug)
 		int      hide;            // hide ananlysis
@@ -140,7 +141,8 @@ typedef
 
 		int      last;            // last move (for "redo")
 		int      move;            // move number
-		play_t   play[MOVE_MAX];  // undo/redo buffer
+		play_t   play[MOVE_MAX];  // undo/redo buffer .. play[0] is Move #1
+		int      draw;            // declare a draw after 'draw' moves
 
 		int      mev;             // mouse event
 		int      my, mx;          // mouse x,y

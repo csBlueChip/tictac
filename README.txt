@@ -35,7 +35,7 @@ tictac.c - the game
 
 bot.c - bots
 	jacob  - normal game, can't lose
-	juanin - any game, considers win/lose/random
+	cabot  - any game, considers win/lose/random
 	david  - any game, considers win/win2/lose/random
 
 ------------------------------------------------------------------------------- ---------------------------------------

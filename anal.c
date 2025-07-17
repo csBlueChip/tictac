@@ -141,7 +141,8 @@ void  analyse (board_s* bp,  int st,  int nd)
 	}
 
 	// Do a min/max on the remaining "fair" items
-	simpleMinMax(bp, st, nd);
+	// I'm of great doubt as to the value of this in a looping game!
+	if ((g.loop == 9) || (g.move < g.loop -1))  simpleMinMax(bp, st, nd) ;
 }
 
 //+============================================================================ =======================================

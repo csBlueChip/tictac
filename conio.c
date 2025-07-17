@@ -247,10 +247,11 @@ int  getchw (void)
 				}
 
 				//  \e \e  ->  esc
-				//  \e [   -> CSI
-				//! \e A   -> what should this do? ...I currently just return the "A"
+				//  \e [   -> CSI  ... be warned this is identical to 'Alt ['
+
+				//  \e A   -> ALT A
 				if ((ip[-1] == '\e') && ((*ip == '\e') || (*ip != '[' )))
-					return (ip = buf),  chr ;
+					return (ip = buf),  KEY_ALT(chr) ;
 				else  // we got \e[
 					return ip++,  KEY_WAIT ;  // CSI ...wait for more
 
